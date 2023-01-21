@@ -21,6 +21,9 @@ export default class PotatoApp {
     }
 
     createRoute(method, sufix, dynamicFunction) {
+        if (sufix.at(0) != '/') {
+            sufix = '/'+sufix;
+        }
         this.#routes.push({
             method,
             sufix,

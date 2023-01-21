@@ -18,3 +18,11 @@ app.createRoute(methods.POST, '/teste', (req) => {
     }
     app.finishRequest(201, response);
 })
+
+app.createRoute(methods.GET, 'promise', () => {
+    const response = {
+        message: 'promise route',
+    }
+
+    app.finishRequest(200, response);
+})
