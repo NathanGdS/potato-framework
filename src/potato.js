@@ -35,7 +35,7 @@ export default class PotatoApp {
     #defineGlobalAttributes(req, res) {
         this.#appReq = req;
         this.#appRes = res;
-        this.#method = req.method;
+        this.#method = req.method.toUpperCase();
         this.#path = req.url;
     }
 
