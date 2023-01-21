@@ -19,10 +19,16 @@ app.createRoute(methods.POST, '/teste', (req) => {
     app.finishRequest(201, response);
 })
 
-app.createRoute(methods.GET, 'promise', () => {
+app.createRoute(methods.GET, 'promise', async () => {
     const response = {
         message: 'promise route',
     }
+
+    const promise = new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+    });
+
+    await promise;
 
     app.finishRequest(200, response);
 })

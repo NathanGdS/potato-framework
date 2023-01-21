@@ -1,5 +1,6 @@
 import http from "node:http";
 import log from "./utils/logger.js";
+import { isPromise } from "./utils/isPromise.js"
 
 export default class PotatoApp {
     #appReq;
@@ -12,7 +13,7 @@ export default class PotatoApp {
         http.createServer(async (req, res) => {
             this.#defineGlobalAttributes(req, res);
             await this.#defineBodyAttributes();
-            this.#handleRoute();
+            await this.#handleRoute();
 
             this.#appRes.end();
         }).listen(port, () => {
@@ -50,10 +51,15 @@ export default class PotatoApp {
         }
     }
 
-    #handleRoute() {
+    async #handleRoute() {
         const routeIndex = this.#routes.findIndex(e => e.sufix == this.#path && e.method == this.#method);
         if (routeIndex >= 0) {
-            this.#routes[routeIndex].dynamicFunction(this.#dataBody);
+            const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
+            if(isPromise(dynamicFunction)) {
+                await dynamicFunction(this.#dataBody);
+            } else {
+                dynamicFunction(this.#dataBody)
+            }
             return;
         }
         return this.finishRequest(404, {
@@ -72,10 +78,3 @@ export default class PotatoApp {
     
 }
 
-// function isPromise(func) {
-//     if (typeof func === 'object' && typeof func.then === 'function') {
-//       return true;
-//     }
-  
-//     return false;
-//   }
