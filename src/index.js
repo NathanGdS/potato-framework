@@ -1,28 +1,26 @@
 import PotatoApp from "./potato.js";
-import methods from "./utils/constants.js";
+import constants from "./utils/constants.js";
 
-const PORT = 3000;
+const app = new PotatoApp();
 
-const app = new PotatoApp(PORT);
-
-app.createRoute(methods.GET, '/teste', () => {
-    app.finishRequest(200, {
+app.createRoute(constants.methods.GET, '/teste', () => {
+    app.finishRequest(constants.codes.SUCCESS, {
         message: 'teste - GET'
     });
-})
+});
 
-app.createRoute(methods.POST, '/teste', (req) => {
+app.createRoute(constants.methods.POST, '/teste', (req) => {
     const response = {
         changed: req.a,
         b: req.b
     }
-    app.finishRequest(201, response);
-})
+    app.finishRequest(constants.codes.CREATED, response);
+});
 
-app.createRoute(methods.GET, 'promise', async () => {
+app.createRoute(constants.methods.GET, 'promise', async () => {
     const response = {
         message: 'promise route',
-    }
+    };
 
     const promise = new Promise((resolve) => {
         setTimeout(resolve, 1000);
@@ -30,5 +28,5 @@ app.createRoute(methods.GET, 'promise', async () => {
 
     await promise;
 
-    app.finishRequest(200, response);
-})
+    app.finishRequest(constants.codes.SUCCESS, response);
+});

@@ -1,6 +1,7 @@
 import http from "node:http";
 import log from "./utils/logger.js";
 import { isPromise } from "./utils/isPromise.js"
+import constants from "./utils/constants.js";
 
 export default class PotatoApp {
     #appReq;
@@ -9,16 +10,26 @@ export default class PotatoApp {
     #path;
     #dataBody;
     #routes = [];
+    #port;
+
     constructor(port) {
+        this.#port = port;
+        if (!port) {
+            this.#port = constants.defaultPort;
+        }
+        this.#startApp();
+    }
+
+    #startApp() {
         http.createServer(async (req, res) => {
             this.#defineGlobalAttributes(req, res);
             await this.#defineBodyAttributes();
             await this.#handleRoute();
 
             this.#appRes.end();
-        }).listen(port, () => {
-            log(`App is running on port ${port}`).info();
-        })
+        }).listen(this.#port, () => {
+            log(`App is running on port ${this.#port}`).info();
+        });
     }
 
     createRoute(method, sufix, dynamicFunction) {
@@ -56,25 +67,23 @@ export default class PotatoApp {
         if (routeIndex >= 0) {
             const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
             if(isPromise(dynamicFunction)) {
-                await dynamicFunction(this.#dataBody);
+                return await dynamicFunction(this.#dataBody);
             } else {
-                dynamicFunction(this.#dataBody)
+                return dynamicFunction(this.#dataBody);
             }
-            return;
         }
-        return this.finishRequest(404, {
+        return this.finishRequest(constants.codes.NOT_FOUND, {
             message: 'Route not founded!'
         })
     }
 
     finishRequest(code, message) {
         if (!code) {
-            code = 200;
+            code = constants.codes.SUCCESS;
         }
         this.#appRes.writeHead(code);
         this.#appRes.write(JSON.stringify(message));
         this.#appRes.end()
     }
-    
 }
 
