@@ -8,6 +8,9 @@ const CONSTANTS = {
         SUCCESS: 200,
         CREATED: 201,
         NOT_FOUND: 404,
+    },
+    routes: {
+        INVALID_ROUTE_MESSAGE: 'Route not founded!'
     }
 }
 

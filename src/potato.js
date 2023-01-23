@@ -66,7 +66,7 @@ export default class PotatoApp {
         const routeIndex = this.#getRouteIndex();
         if (routeIndex < 0) {
             return this.finishRequest(constants.codes.NOT_FOUND, {
-                message: 'Route not founded!'
+                message: constants.routes.INVALID_ROUTE_MESSAGE
             })
         }
         const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
