@@ -63,18 +63,22 @@ export default class PotatoApp {
     }
 
     async #handleRoute() {
-        const routeIndex = this.#routes.findIndex(e => e.sufix == this.#path && e.method == this.#method);
-        if (routeIndex >= 0) {
-            const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
-            if(isPromise(dynamicFunction)) {
-                return await dynamicFunction(this.#dataBody);
-            } else {
-                return dynamicFunction(this.#dataBody);
-            }
+        const routeIndex = this.#getRouteIndex();
+        if (routeIndex < 0) {
+            return this.finishRequest(constants.codes.NOT_FOUND, {
+                message: 'Route not founded!'
+            })
         }
-        return this.finishRequest(constants.codes.NOT_FOUND, {
-            message: 'Route not founded!'
-        })
+        const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
+        if(!isPromise(dynamicFunction)) {
+            return dynamicFunction(this.#dataBody);
+            
+        }
+        return await dynamicFunction(this.#dataBody);
+    }
+
+    #getRouteIndex() {
+        return this.#routes.findIndex(e => e.sufix == this.#path && e.method == this.#method);
     }
 
     finishRequest(code, message) {
