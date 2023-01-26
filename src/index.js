@@ -1,10 +1,10 @@
 import PotatoApp from "./potato.js";
 import { CONSTANTS } from "./constants/index.js";
 
-const app = new PotatoApp(4001);
+const app = new PotatoApp();
 
 app.createRoute(CONSTANTS.methods.GET, '/teste', () => {
-    app.finishRequest(constants.codes.SUCCESS, {
+    app.finishRequest(CONSTANTS.codes.SUCCESS, {
         message: 'teste - GET'
     });
 });

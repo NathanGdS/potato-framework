@@ -15,7 +15,7 @@ export default class PotatoApp {
     constructor(port) {
         this.#port = port;
         if (!port) {
-            this.#port = constants.defaultPort;
+            this.#port = CONSTANTS.defaultPort;
         }
         this.#startApp();
     }
