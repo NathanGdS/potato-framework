@@ -83,7 +83,7 @@ export default class PotatoApp {
 
     finishRequest(code, message) {
         if (!code) {
-            code = constants.codes.SUCCESS;
+            code = CONSTANTS.codes.SUCCESS;
         }
         this.#appRes.writeHead(code);
         this.#appRes.write(JSON.stringify(message));
