@@ -1,7 +1,7 @@
 import http from "node:http";
 import log from "./utils/logger.js";
 import { isPromise } from "./utils/isPromise.js"
-import constants from "./utils/constants.js";
+import { CONSTANTS } from "./constants/index.js";
 
 export default class PotatoApp {
     #appReq;
@@ -65,8 +65,8 @@ export default class PotatoApp {
     async #handleRoute() {
         const routeIndex = this.#getRouteIndex();
         if (routeIndex < 0) {
-            return this.finishRequest(constants.codes.NOT_FOUND, {
-                message: constants.routes.INVALID_ROUTE_MESSAGE
+            return this.finishRequest(CONSTANTS.codes.NOT_FOUND, {
+                message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
             })
         }
         const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
