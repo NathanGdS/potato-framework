@@ -3,7 +3,7 @@ import log from "./utils/logger.js";
 import { CONSTANTS } from "./constants/index.js";
 import { Routes } from "./Routes.js";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
-import { HttpStatusCode } from "./constants/HttpStatusCoded.constants.js";
+import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
 
 export default class PotatoApp extends Routes {
     #appReq;

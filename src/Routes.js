@@ -1,6 +1,6 @@
 import { isPromise } from "./utils/isPromise.js"
-import { CONSTANTS } from "./constants/index.js";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
+import { HttpMethod } from "./constants/HttpMethod.constants.js";
 
 export class Routes {
     #routes = [];
@@ -9,23 +9,23 @@ export class Routes {
     }
 
     get(sufix, dynamicFunction) {
-        this.#createRoute(CONSTANTS.methods.GET, sufix, dynamicFunction);
+        this.#createRoute(HttpMethod.GET, sufix, dynamicFunction);
     }
 
     post(sufix, dynamicFunction) {
-        this.#createRoute(CONSTANTS.methods.POST, sufix, dynamicFunction);
+        this.#createRoute(HttpMethod.POST, sufix, dynamicFunction);
     }
 
     patch(sufix, dynamicFunction) {
-        this.#createRoute(CONSTANTS.methods.PATCH, sufix, dynamicFunction);
+        this.#createRoute(HttpMethod.PATCH, sufix, dynamicFunction);
     }
 
     put(sufix, dynamicFunction) {
-        this.#createRoute(CONSTANTS.methods.PUT, sufix, dynamicFunction);
+        this.#createRoute(HttpMethod.PUT, sufix, dynamicFunction);
     }
 
     delete(sufix, dynamicFunction) {
-        this.#createRoute(CONSTANTS.methods.DELETE, sufix, dynamicFunction);
+        this.#createRoute(HttpMethod.DELETE, sufix, dynamicFunction);
     }
 
     #createRoute(method, sufix, dynamicFunction) {

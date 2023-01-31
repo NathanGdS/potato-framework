@@ -1,6 +1,5 @@
 import PotatoApp from "./Potato.js";
-import { CONSTANTS } from "./constants/index.js";
-import { HttpStatusCode } from "./constants/HttpStatusCoded.constants.js";
+import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
 
 const app = new PotatoApp();
 
