@@ -59,7 +59,7 @@ export default class PotatoApp extends Routes {
         } catch (error) {
             if (error instanceof RouteNotFoundException) {
                 return this.finishRequest(HttpStatusCode.NOT_FOUND, {
-                    message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
+                    message: error.message
                 })
             }
             return this.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, {

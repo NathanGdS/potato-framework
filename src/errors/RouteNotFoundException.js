@@ -1,5 +1,7 @@
+import { CONSTANTS_ROUTES } from "../constants/routes.constants.js";
+
 export class RouteNotFoundException extends Error {
-    message = 'Route not found';
+    message = CONSTANTS_ROUTES.INVALID_ROUTE_MESSAGE;
     status = 404;
     constructor(){
         super();
