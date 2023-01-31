@@ -2,6 +2,7 @@ import http from "node:http";
 import log from "./utils/logger.js";
 import { CONSTANTS } from "./constants/index.js";
 import { Routes } from "./Routes.js";
+import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 
 export default class PotatoApp extends Routes {
     #appReq;
@@ -52,13 +53,18 @@ export default class PotatoApp extends Routes {
     }
 
     async #handleRoute() {
-        const routeIndex = this._getRouteIndex(this.#path, this.#method);
-        if (routeIndex < 0) {
-            return this.finishRequest(CONSTANTS.codes.NOT_FOUND, {
-                message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
+        try {
+            return await this.executeDynamicFunction(this.#path, this.#method, this.#dataBody);
+        } catch (error) {
+            if (error instanceof RouteNotFoundException) {
+                return this.finishRequest(CONSTANTS.codes.NOT_FOUND, {
+                    message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
+                })
+            }
+            return this.finishRequest(500, {
+                message: error.message
             })
         }
-        return await this.executeDynamicFunction(routeIndex, this.#dataBody);
     }
 
     finishRequest(code, message) {

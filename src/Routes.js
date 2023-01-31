@@ -1,5 +1,6 @@
 import { isPromise } from "./utils/isPromise.js"
 import { CONSTANTS } from "./constants/index.js";
+import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 
 export class Routes {
     #routes = [];
@@ -39,12 +40,16 @@ export class Routes {
         });
     }
 
-    _getRouteIndex(path, method) {
+    #getRouteIndex(path, method) {
         return this.#routes.findIndex(e => e.sufix == path && e.method == method);
     }
 
-    async executeDynamicFunction(index, body) {
-        const dynamicFunction = this.#routes[index].dynamicFunction;
+    async executeDynamicFunction(path, method, body) {
+        const routeIndex = this.#getRouteIndex(path, method)
+        if(routeIndex < 0) {
+            throw new RouteNotFoundException();
+        }
+        const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
         if(!isPromise(dynamicFunction)) {
             return dynamicFunction(body);
             
