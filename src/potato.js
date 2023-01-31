@@ -61,7 +61,7 @@ export default class PotatoApp extends Routes {
                     message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
                 })
             }
-            return this.finishRequest(500, {
+            return this.finishRequest(CONSTANTS.codes.INTERNAL_SERVER_ERROR, {
                 message: error.message
             })
         }
