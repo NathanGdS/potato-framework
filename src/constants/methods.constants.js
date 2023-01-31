@@ -1,4 +1,7 @@
 export const CONSTANTS_METHODS = {
     GET: 'GET',
-    POST: 'POST'
+    POST: 'POST',
+    PATCH: 'PATCH',
+    PUT: 'PUT',
+    DELETE: 'DELETE'
 };

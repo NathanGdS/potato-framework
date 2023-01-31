@@ -1,15 +1,15 @@
-import PotatoApp from "./potato.js";
+import PotatoApp from "./Potato.js";
 import { CONSTANTS } from "./constants/index.js";
 
 const app = new PotatoApp();
 
-app.createRoute(CONSTANTS.methods.GET, '/teste', () => {
+app.get('/teste', () => {
     app.finishRequest(CONSTANTS.codes.SUCCESS, {
         message: 'teste - GET'
     });
 });
 
-app.createRoute(CONSTANTS.methods.POST, '/teste', (req) => {
+app.post('/teste', (req) => {
     const response = {
         changed: req.a,
         b: req.b
@@ -17,7 +17,25 @@ app.createRoute(CONSTANTS.methods.POST, '/teste', (req) => {
     app.finishRequest(CONSTANTS.codes.CREATED, response);
 });
 
-app.createRoute(CONSTANTS.methods.GET, 'promise', async () => {
+app.put('/teste', () => {
+    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+        message: 'teste - PUT'
+    });
+});
+
+app.patch('/teste', () => {
+    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+        message: 'teste - PATCH'
+    });
+});
+
+app.delete('/teste', () => {
+    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+        message: 'teste - DELETE'
+    });
+});
+
+app.get('promise', async () => {
     const response = {
         message: 'promise route',
     };

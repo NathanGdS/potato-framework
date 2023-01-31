@@ -1,18 +1,18 @@
 import http from "node:http";
 import log from "./utils/logger.js";
-import { isPromise } from "./utils/isPromise.js"
 import { CONSTANTS } from "./constants/index.js";
+import { Routes } from "./Routes.js";
 
-export default class PotatoApp {
+export default class PotatoApp extends Routes {
     #appReq;
     #appRes;
     #method;
     #path;
     #dataBody;
-    #routes = [];
     #port;
 
     constructor(port) {
+        super();
         this.#port = port;
         if (!port) {
             this.#port = CONSTANTS.defaultPort;
@@ -29,17 +29,6 @@ export default class PotatoApp {
             this.#appRes.end();
         }).listen(this.#port, () => {
             log(`App is running on port ${this.#port}`).info();
-        });
-    }
-
-    createRoute(method, sufix, dynamicFunction) {
-        if (sufix.at(0) != '/') {
-            sufix = '/'+sufix;
-        }
-        this.#routes.push({
-            method,
-            sufix,
-            dynamicFunction,
         });
     }
 
@@ -63,22 +52,13 @@ export default class PotatoApp {
     }
 
     async #handleRoute() {
-        const routeIndex = this.#getRouteIndex();
+        const routeIndex = this._getRouteIndex(this.#path, this.#method);
         if (routeIndex < 0) {
             return this.finishRequest(CONSTANTS.codes.NOT_FOUND, {
                 message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
             })
         }
-        const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
-        if(!isPromise(dynamicFunction)) {
-            return dynamicFunction(this.#dataBody);
-            
-        }
-        return await dynamicFunction(this.#dataBody);
-    }
-
-    #getRouteIndex() {
-        return this.#routes.findIndex(e => e.sufix == this.#path && e.method == this.#method);
+        return await this.executeDynamicFunction(routeIndex, this.#dataBody);
     }
 
     finishRequest(code, message) {
