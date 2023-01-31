@@ -1,10 +1,11 @@
 import PotatoApp from "./Potato.js";
 import { CONSTANTS } from "./constants/index.js";
+import { HttpStatusCode } from "./constants/HttpStatusCoded.constants.js";
 
 const app = new PotatoApp();
 
 app.get('/teste', () => {
-    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - GET'
     });
 });
@@ -14,23 +15,23 @@ app.post('/teste', (req) => {
         changed: req.a,
         b: req.b
     }
-    app.finishRequest(CONSTANTS.codes.CREATED, response);
+    app.finishRequest(HttpStatusCode.CREATED, response);
 });
 
 app.put('/teste', () => {
-    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - PUT'
     });
 });
 
 app.patch('/teste', () => {
-    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - PATCH'
     });
 });
 
 app.delete('/teste', () => {
-    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - DELETE'
     });
 });
@@ -46,5 +47,5 @@ app.get('promise', async () => {
 
     await promise;
 
-    app.finishRequest(CONSTANTS.codes.SUCCESS, response);
+    app.finishRequest(HttpStatusCode.SUCCESS, response);
 });

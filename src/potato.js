@@ -3,6 +3,7 @@ import log from "./utils/logger.js";
 import { CONSTANTS } from "./constants/index.js";
 import { Routes } from "./Routes.js";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
+import { HttpStatusCode } from "./constants/HttpStatusCoded.constants.js";
 
 export default class PotatoApp extends Routes {
     #appReq;
@@ -57,11 +58,11 @@ export default class PotatoApp extends Routes {
             return await this.executeDynamicFunction(this.#path, this.#method, this.#dataBody);
         } catch (error) {
             if (error instanceof RouteNotFoundException) {
-                return this.finishRequest(CONSTANTS.codes.NOT_FOUND, {
+                return this.finishRequest(HttpStatusCode.NOT_FOUND, {
                     message: CONSTANTS.routes.INVALID_ROUTE_MESSAGE
                 })
             }
-            return this.finishRequest(CONSTANTS.codes.INTERNAL_SERVER_ERROR, {
+            return this.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, {
                 message: error.message
             })
         }
@@ -69,7 +70,7 @@ export default class PotatoApp extends Routes {
 
     finishRequest(code, message) {
         if (!code) {
-            code = CONSTANTS.codes.SUCCESS;
+            code = HttpStatusCode.SUCCESS;
         }
         this.#appRes.writeHead(code);
         this.#appRes.write(JSON.stringify(message));

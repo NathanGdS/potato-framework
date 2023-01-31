@@ -1,4 +1,4 @@
-export const CONSTANTS_CODES = {
+export const HttpStatusCode = {
     SUCCESS: 200,
     CREATED: 201,
     NOT_FOUND: 404,
