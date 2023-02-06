@@ -9,10 +9,17 @@ app.get('/teste', () => {
     });
 });
 
-app.post('/teste', (req) => {
+app.get('/teste/:testeId/group/:groupId', ({params}) => {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
+        message: 'teste - GET - id',
+        params
+    });
+});
+
+app.post('/teste', ({body}) => {
     const response = {
-        changed: req.a,
-        b: req.b
+        changed: body.a,
+        b: body.b
     }
     app.finishRequest(HttpStatusCode.CREATED, response);
 });

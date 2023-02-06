@@ -1,6 +1,7 @@
 import { isPromise } from "./utils/isPromise.js"
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpMethod } from "./constants/HttpMethod.constants.js";
+import { buildRoutePath } from "./utils/buildRoutePath.js";
 
 export class Routes {
     #routes = [];
@@ -32,16 +33,26 @@ export class Routes {
         if (sufix.at(0) != '/') {
             sufix = '/'+sufix;
         }
-
-        this.#routes.push({
+        
+        const newRoute = {
             method,
-            sufix,
+            sufix: buildRoutePath(sufix),
             dynamicFunction,
-        });
+            params: null
+        }
+        this.#routes.push(newRoute);
     }
 
     #getRouteIndex(path, method) {
-        return this.#routes.findIndex(e => e.sufix == path && e.method == method);
+        return this.#routes.findIndex(e => {
+            const regexVerfier = e.sufix.exec(path);
+            if(regexVerfier && e.method == method) {
+               if(regexVerfier.find(t => t==path)){
+                e.params = regexVerfier.groups
+                return e;
+               }
+            }
+        });
     }
 
     async executeDynamicFunction(path, method, body) {
@@ -49,9 +60,14 @@ export class Routes {
         if(routeIndex < 0) {
             throw new RouteNotFoundException();
         }
+        
+        const params =this.#routes[routeIndex].params
         const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
         if(!isPromise(dynamicFunction)) {
-            return dynamicFunction(body);
+            return dynamicFunction({
+                body,
+                params
+            });
             
         }
         return await dynamicFunction(body);
