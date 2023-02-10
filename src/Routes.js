@@ -15,7 +15,7 @@ export class Routes {
         const length = args.length;
         for(let i =0; i <=length-1; i++) {
             if (i == length-1){
-                this.#createRoute(HttpMethod.GET, sufix, args[length-1], middlewares.getAllMiddlewares());
+                this.#createRoute(httpMethod, sufix, args[length-1], middlewares.getAllMiddlewares());
                 middlewares.reset();
                 return;
             }
@@ -26,8 +26,6 @@ export class Routes {
     get(sufix, ...args) {
         this.#createRequestCycle(sufix, HttpMethod.GET, ...args);
     }
-
-
 
     post(sufix, ...args) {
         this.#createRequestCycle(sufix, HttpMethod.POST, ...args);
