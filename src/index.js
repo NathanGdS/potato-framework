@@ -3,13 +3,13 @@ import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
 
 const app = new PotatoApp();
 
-app.get('/teste', () => {
+app.get('/teste', firstMiddleware, secondMiddleware, thirdMiddleware, () => {
     app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - GET'
     });
 });
 
-app.get('/teste/:testeId/group/:groupId', ({params}) => {
+app.get('/teste/:testeId/group/:groupId', validateParamMiddleware, transformMiddleware, ({params}) => {
     app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - GET - id',
         params
@@ -55,3 +55,38 @@ app.get('promise', async () => {
 
     app.finishRequest(HttpStatusCode.SUCCESS, response);
 });
+
+
+
+async function firstMiddleware() {
+    const promise = new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+    });
+
+    await promise;
+    console.log('first with promise')
+    return
+}
+
+function secondMiddleware() {
+    throw new Error('teste')
+}
+
+function thirdMiddleware() {
+    console.log('second')
+}
+
+function validateParamMiddleware({
+    params
+}) {
+    if(params.groupId != Number(1)) {
+        throw new Error('GroupId is not 1')
+    }
+}
+
+function transformMiddleware({
+    params
+}) {
+    params.testeId = String('transformed')
+}
+

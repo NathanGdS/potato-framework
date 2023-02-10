@@ -2,6 +2,7 @@ import { isPromise } from "./utils/isPromise.js"
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpMethod } from "./constants/HttpMethod.constants.js";
 import { buildRoutePath } from "./utils/buildRoutePath.js";
+import { Middleware } from "./Middleware.js"
 
 export class Routes {
     #routes = [];
@@ -9,27 +10,42 @@ export class Routes {
     constructor() {
     }
 
-    get(sufix, dynamicFunction) {
-        this.#createRoute(HttpMethod.GET, sufix, dynamicFunction);
+    #createRequestCycle(sufix, httpMethod, ...args) {
+        const middlewares = new Middleware();
+        const length = args.length;
+        for(let i =0; i <=length-1; i++) {
+            if (i == length-1){
+                this.#createRoute(HttpMethod.GET, sufix, args[length-1], middlewares.getAllMiddlewares());
+                middlewares.reset();
+                return;
+            }
+            middlewares.add(args[i]);
+        }
     }
 
-    post(sufix, dynamicFunction) {
-        this.#createRoute(HttpMethod.POST, sufix, dynamicFunction);
+    get(sufix, ...args) {
+        this.#createRequestCycle(sufix, HttpMethod.GET, ...args);
     }
 
-    patch(sufix, dynamicFunction) {
-        this.#createRoute(HttpMethod.PATCH, sufix, dynamicFunction);
+
+
+    post(sufix, ...args) {
+        this.#createRequestCycle(sufix, HttpMethod.POST, ...args);
     }
 
-    put(sufix, dynamicFunction) {
-        this.#createRoute(HttpMethod.PUT, sufix, dynamicFunction);
+    patch(sufix, ...args) {
+        this.#createRequestCycle(sufix, HttpMethod.PATCH, ...args);
     }
 
-    delete(sufix, dynamicFunction) {
-        this.#createRoute(HttpMethod.DELETE, sufix, dynamicFunction);
+    put(sufix, ...args) {
+        this.#createRequestCycle(sufix, HttpMethod.PUT, ...args);
     }
 
-    #createRoute(method, sufix, dynamicFunction) {
+    delete(sufix, ...args) {
+        this.#createRequestCycle(sufix, HttpMethod.DELETE, ...args);
+    }
+
+    #createRoute(method, sufix, dynamicFunction, middlewares) {
         if (sufix.at(0) != '/') {
             sufix = '/'+sufix;
         }
@@ -38,7 +54,8 @@ export class Routes {
             method,
             sufix: buildRoutePath(sufix),
             dynamicFunction,
-            params: null
+            params: null,
+            middlewares: middlewares ?? []
         }
         this.#routes.push(newRoute);
     }
@@ -60,14 +77,30 @@ export class Routes {
         if(routeIndex < 0) {
             throw new RouteNotFoundException();
         }
+        const route = this.#routes[routeIndex];
         
-        const params =this.#routes[routeIndex].params
-        const dynamicFunction = this.#routes[routeIndex].dynamicFunction;
+        const params = route.params
+        const dynamicFunction = route.dynamicFunction;
+        const requestCycleObject = {
+            body,
+            params
+        }
+        Object.freeze(requestCycleObject);
+        //execute middlewares
+        if (route.middlewares) {
+            for (let i=0; i < route.middlewares.length; i ++) {
+                const actualMiddleware = route.middlewares[i];
+                if(!isPromise(actualMiddleware)) {
+                    actualMiddleware(requestCycleObject);
+                    
+                }else {
+                    await actualMiddleware(requestCycleObject);
+                }
+            }
+        }
+
         if(!isPromise(dynamicFunction)) {
-            return dynamicFunction({
-                body,
-                params
-            });
+            return dynamicFunction(requestCycleObject);
             
         }
         return await dynamicFunction(body);
