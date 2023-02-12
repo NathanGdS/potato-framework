@@ -1,27 +1,12 @@
-import { isPromise } from "./utils/isPromise.js"
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpMethod } from "./constants/HttpMethod.constants.js";
 import { buildRoutePath } from "./utils/buildRoutePath.js";
-import { Middleware } from "./Middleware.js"
+import { RequestCycle } from "./RequestCycle.js";
 
 export class Routes {
     #routes = [];
 
-    constructor() {
-    }
-
-    #createRequestCycle(sufix, httpMethod, ...args) {
-        const middlewares = new Middleware();
-        const length = args.length;
-        for(let i =0; i <=length-1; i++) {
-            if (i == length-1){
-                this.#createRoute(httpMethod, sufix, args[length-1], middlewares.getAllMiddlewares());
-                middlewares.reset();
-                return;
-            }
-            middlewares.add(args[i]);
-        }
-    }
+    constructor() { }
 
     get(sufix, ...args) {
         this.#createRequestCycle(sufix, HttpMethod.GET, ...args);
@@ -43,6 +28,13 @@ export class Routes {
         this.#createRequestCycle(sufix, HttpMethod.DELETE, ...args);
     }
 
+    #createRequestCycle(sufix, httpMethod, ...args) {
+        const requestCycle = new RequestCycle();
+        requestCycle.addMultiples(args)
+        const length = args.length;
+        this.#createRoute(httpMethod, sufix, args[length-1], requestCycle.getAllMiddlewares());
+    }
+
     #createRoute(method, sufix, dynamicFunction, middlewares) {
         if (sufix.at(0) != '/') {
             sufix = '/'+sufix;
@@ -53,7 +45,7 @@ export class Routes {
             sufix: buildRoutePath(sufix),
             dynamicFunction,
             params: null,
-            middlewares: middlewares ?? []
+            requestCycle: new RequestCycle(middlewares)
         }
         this.#routes.push(newRoute);
     }
@@ -70,37 +62,22 @@ export class Routes {
         });
     }
 
-    async executeDynamicFunction(path, method, body) {
+    async executeRequestCycle(path, method, body) {
         const routeIndex = this.#getRouteIndex(path, method)
         if(routeIndex < 0) {
             throw new RouteNotFoundException();
         }
         const route = this.#routes[routeIndex];
         
-        const params = route.params
-        const dynamicFunction = route.dynamicFunction;
+        const params = route.params;
         const requestCycleObject = {
             body,
             params
         }
         Object.freeze(requestCycleObject);
-        //execute middlewares
-        if (route.middlewares) {
-            for (let i=0; i < route.middlewares.length; i ++) {
-                const actualMiddleware = route.middlewares[i];
-                if(!isPromise(actualMiddleware)) {
-                    actualMiddleware(requestCycleObject);
-                    
-                }else {
-                    await actualMiddleware(requestCycleObject);
-                }
-            }
+        if (route.requestCycle) {
+            return await route.requestCycle.executeRequestCycle(requestCycleObject)
         }
-
-        if(!isPromise(dynamicFunction)) {
-            return dynamicFunction(requestCycleObject);
-            
-        }
-        return await dynamicFunction(body);
+        throw new Error('Error in request life cycle request')
     }
 }

@@ -55,7 +55,7 @@ export default class PotatoApp extends Routes {
 
     async #handleRoute() {
         try {
-            return await this.executeDynamicFunction(this.#path, this.#method, this.#dataBody);
+            return await this.executeRequestCycle(this.#path, this.#method, this.#dataBody);
         } catch (error) {
             if (error instanceof RouteNotFoundException) {
                 return this.finishRequest(HttpStatusCode.NOT_FOUND, {
