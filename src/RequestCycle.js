@@ -29,7 +29,7 @@ export class RequestCycle {
         this.#handlers = [];
     }
 
-    getAllMiddlewares(){
+    getAllHandlers(){
         return this.#handlers;
     }
 }

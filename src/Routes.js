@@ -30,12 +30,11 @@ export class Routes {
 
     #createRequestCycle(sufix, httpMethod, ...args) {
         const requestCycle = new RequestCycle();
-        requestCycle.addMultiples(args)
-        const length = args.length;
-        this.#createRoute(httpMethod, sufix, args[length-1], requestCycle.getAllMiddlewares());
+        requestCycle.addMultiples(args);
+        this.#createRoute(httpMethod, sufix, requestCycle.getAllHandlers());
     }
 
-    #createRoute(method, sufix, dynamicFunction, middlewares) {
+    #createRoute(method, sufix, requestCycle) {
         if (sufix.at(0) != '/') {
             sufix = '/'+sufix;
         }
@@ -43,9 +42,8 @@ export class Routes {
         const newRoute = {
             method,
             sufix: buildRoutePath(sufix),
-            dynamicFunction,
             params: null,
-            requestCycle: new RequestCycle(middlewares)
+            requestCycle: new RequestCycle(requestCycle)
         }
         this.#routes.push(newRoute);
     }
@@ -62,7 +60,7 @@ export class Routes {
         });
     }
 
-    async executeRequestCycle(path, method, body) {
+    async executeRequestCycle(path, method, body, headers) {
         const routeIndex = this.#getRouteIndex(path, method)
         if(routeIndex < 0) {
             throw new RouteNotFoundException();
@@ -72,7 +70,8 @@ export class Routes {
         const params = route.params;
         const requestCycleObject = {
             body,
-            params
+            params,
+            headers
         }
         Object.freeze(requestCycleObject);
         if (route.requestCycle) {

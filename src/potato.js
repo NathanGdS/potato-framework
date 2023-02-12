@@ -12,6 +12,7 @@ export default class PotatoApp extends Routes {
     #path;
     #dataBody;
     #port;
+    #headers;
 
     constructor(port) {
         super();
@@ -39,6 +40,9 @@ export default class PotatoApp extends Routes {
         this.#appRes = res;
         this.#method = req.method.toUpperCase();
         this.#path = req.url;
+        this.#headers = req.headers;
+        req = null;
+        res = null;
     }
 
     async #defineBodyAttributes() {
@@ -55,7 +59,7 @@ export default class PotatoApp extends Routes {
 
     async #handleRoute() {
         try {
-            return await this.executeRequestCycle(this.#path, this.#method, this.#dataBody);
+            return await this.executeRequestCycle(this.#path, this.#method, this.#dataBody, this.#headers);
         } catch (error) {
             if (error instanceof RouteNotFoundException) {
                 return this.finishRequest(HttpStatusCode.NOT_FOUND, {

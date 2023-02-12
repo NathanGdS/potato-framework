@@ -27,11 +27,17 @@ function transformMiddleware({
     params.testeId = String('transformed')
 }
 
+function apiKeyMiddleare({headers}) {
+    console.log(headers['x-api-key'])
+    if (headers['x-api-key'] != 'api-key-token') {
+        throw new Error('Forbidden')
+    }
+}
 
-
-app.get('/teste',promiseMiddleware, () => {
+app.get('/teste',promiseMiddleware, apiKeyMiddleare, ({headers}) => {
     app.finishRequest(HttpStatusCode.SUCCESS, {
-        message: 'teste - GET'
+        message: 'teste - GET',
+        headers
     });
 });
 
@@ -42,7 +48,7 @@ app.get('/teste/:testeId/group/:groupId', validateParamMiddleware, transformMidd
     });
 });
 
-app.post('/teste', ({body}) => {
+app.post('/teste', apiKeyMiddleare, ({body}) => {
     const response = {
         changed: body.a,
         b: body.b
