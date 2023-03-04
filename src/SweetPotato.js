@@ -5,7 +5,7 @@ import { Routes } from "./Routes.js";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
 
-export default class PotatoApp extends Routes {
+export default class SweetPotatoApp extends Routes {
     #appReq;
     #appRes;
     #method;
