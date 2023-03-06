@@ -33,11 +33,13 @@ function apiKeyMiddleare({headers}) {
         throw new Error('Forbidden')
     }
 }
-
-app.get('/teste',promiseMiddleware, apiKeyMiddleare, ({headers}) => {
+//
+app.get('/teste',promiseMiddleware, apiKeyMiddleare, ({headers, queries, params}) => {
     app.finishRequest(HttpStatusCode.SUCCESS, {
         message: 'teste - GET',
-        headers
+        headers,
+        queries,
+        params
     });
 });
 
