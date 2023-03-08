@@ -1,26 +1,16 @@
-import { HttpStatusCode } from "../constants/HttpStatusCode.constants.js";
 import { SweetPotatoApp } from "../index.js";
+import { promiseRoutesTest } from "./routes/promise.routes.js";
 import { testPlugin } from "./routes/test.routes.js";
 
 async function bootstrap() {
     const app = new SweetPotatoApp();
-    const test = testPlugin(app).getRoutes();
-    app.registerRoutes(test);
     
-    app.get('promise', async () => {
-        const response = {
-            message: 'promise route',
-        };
+    app.registerGlobalPrefix('api/v1');
     
-        const promise = new Promise((resolve) => {
-            setTimeout(resolve, 1000);
-        });
-    
-        await promise;
-    
-        app.finishRequest(HttpStatusCode.SUCCESS, response);
-    });
-    
+    const testRoutes = testPlugin(app).getRoutes();
+    const promiseRoutes = promiseRoutesTest(app).getRoutes();
+    app.registerRoutes([...testRoutes, ...promiseRoutes]);
+
     app.listen(3000);
 }
 
