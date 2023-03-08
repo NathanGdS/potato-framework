@@ -4,9 +4,11 @@ import { RequestCycle } from "./RequestCycle.js";
 import { buildRoutePath } from "./utils/buildRoutePath.js";
 import { getQueries } from "./utils/get-query-params.js";
 import { getRouteParams } from "./utils/get-route-params.js";
+import { LoggerInstance } from "./utils/logger.js";
 
 export class Routes {
     #routes = [];
+    #alias = "RouteHandler"
 
     constructor() { }
 
@@ -42,12 +44,13 @@ export class Routes {
         }
         const newRoute = {
             method,
+            originalSufix: sufix,
             sufix: buildRoutePath(sufix),
             params: null,
             queries: null,
             requestCycle: new RequestCycle(requestCycle)
         }
-        this.#routes.push(newRoute);
+        this.#registerRoute(newRoute);
     }
 
     #getRouteIndex(path, method) {
@@ -87,8 +90,14 @@ export class Routes {
 
     registerRoutes(routes) {
         routes.forEach((e) => {
-            this.#routes.push(e);
+            this.#registerRoute(e);
         })
+    }
+
+    #registerRoute(e) {
+        LoggerInstance().registerRoute(e.method, e.originalSufix, this.#alias)
+        // LoggerInstance().info(`${this.#alias} ${e.method} ${e.originalSufix}`);
+        this.#routes.push(e);
     }
 
     getRoutes() {

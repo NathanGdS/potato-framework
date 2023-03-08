@@ -1,21 +1,36 @@
 import colours from "./colours.js";
 
-const handle = (message) => {
-    return new Logger(`${message}`);
+let instance;
+export const LoggerInstance = (message, custom) => {
+    if(!instance) {
+        console.log('criando');
+        instance = new Logger();
+    }
+    return instance.buildMessage();
 }
 
 class Logger {
     #message = "";
     #color;
-    constructor (message) {
-        this.#message+= colours.fg.green + "[Sweet-Potato] "+colours.reset;
-        this.#message+= message;
-        this.#message+= ` ${colours.fg.gray}${new Date().toISOString('DD-MM-yyyy')}${colours.reset}`
+
+    constructor() { 
+
     }
 
-    info() {
+    buildMessage() {
+        this.#resetColor();
+        this.#message+= this.#getDefaultName();
+        this.#message+= this.#getDate();
+        return this;
+    }
+
+    info(message, name) {
         this.#color = colours.fg.green;
-        this.#log();
+        if (name) {
+            this.#message += this.#turnYellow(`[${name}]\t`);
+        }
+        this.#message += this.#turnGreen(message);
+        this.#show();
     }
 
     warn () {
@@ -23,13 +38,38 @@ class Logger {
         return this;
     }
 
-    #log() {
-        console.log(this.#color, this.#message, this.#reset());
+    registerRoute(method, sufix, funcName) {
+        this.#message += this.#turnYellow(`[${funcName}]`);
+        this.#message += this.#turnGreen(`Mapped {${sufix}, ${method}}`);
+        this.#show();
     }
 
-    #reset() {
+    #getDate() {
+        return ` - ${colours.fg.gray}${new Date().toISOString('DD-MM-yyyy')}${colours.reset} - `;
+    }
+
+    #getDefaultName() {
+        return this.#turnGreen("[Sweet-Potato]");
+    }
+
+    #show() {
+        console.log(this.#color ?? this.#resetColor(), this.#message, this.#resetColor());
+        this.#resetMessage();
+    }
+
+    #turnGreen(message) {
+        return `${colours.fg.green}${message}${this.#resetColor()}`
+    }
+
+    #turnYellow(message) {
+        return `${colours.fg.yellow}${message}${this.#resetColor()}\t`
+    }
+
+    #resetMessage(){
+        this.#message = "";
+    }
+
+    #resetColor() {
         return colours.reset;
     }
 }
-
-export default handle

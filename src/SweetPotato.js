@@ -2,7 +2,7 @@ import http from "node:http";
 import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { Routes } from "./Routes.js";
-import log from "./utils/logger.js";
+import { LoggerInstance as log } from "./utils/logger.js";
 
 export default class SweetPotatoApp extends Routes {
     #appReq;
@@ -12,6 +12,7 @@ export default class SweetPotatoApp extends Routes {
     #dataBody;
     #port;
     #headers;
+    #alias = 'App';
 
     constructor() {
         super();
@@ -26,8 +27,8 @@ export default class SweetPotatoApp extends Routes {
 
             this.#appRes.end();
         }).listen(this.#port, () => {
-            log(`${this.getRoutes().length} routes created`).info();
-            log(`App is running on port ${this.#port}`).info();
+            log().info(`${this.getRoutes().length} routes created`, this.#alias);
+            log().info(`App is running on port ${this.#port}`, this.#alias);
         });
     }
 
