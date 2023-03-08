@@ -89,3 +89,5 @@ app.get('promise', async () => {
 
     app.finishRequest(HttpStatusCode.SUCCESS, response);
 });
+
+app.listen();

@@ -1,9 +1,8 @@
 import http from "node:http";
-import log from "./utils/logger.js";
-import { CONSTANTS } from "./constants/index.js";
-import { Routes } from "./Routes.js";
-import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpStatusCode } from "./constants/HttpStatusCode.constants.js";
+import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
+import { Routes } from "./Routes.js";
+import log from "./utils/logger.js";
 
 export default class SweetPotatoApp extends Routes {
     #appReq;
@@ -14,16 +13,12 @@ export default class SweetPotatoApp extends Routes {
     #port;
     #headers;
 
-    constructor(port) {
+    constructor() {
         super();
-        this.#port = port;
-        if (!port) {
-            this.#port = CONSTANTS.defaultPort;
-        }
-        this.#startApp();
     }
 
-    #startApp() {
+    listen(port) {
+        this.#port = port ?? 8080;
         http.createServer(async (req, res) => {
             this.#defineGlobalAttributes(req, res);
             await this.#defineBodyAttributes();
