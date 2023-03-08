@@ -1,14 +1,16 @@
 import colours from "./colours.js";
 
 const handle = (message) => {
-    return new Logger(message);
+    return new Logger(`${message}`);
 }
 
 class Logger {
-    #message;
+    #message = "";
     #color;
     constructor (message) {
-        this.#message = message;
+        this.#message+= colours.fg.green + "[Sweet-Potato] "+colours.reset;
+        this.#message+= message;
+        this.#message+= ` ${colours.fg.gray}${new Date().toISOString('DD-MM-yyyy')}${colours.reset}`
     }
 
     info() {
