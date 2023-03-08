@@ -63,7 +63,8 @@ export class Routes {
             queries: null,
             requestCycle: new RequestCycle(requestCycle)
         }
-        this.#registerRoute(newRoute);
+        LoggerInstance().registerRoute(newRoute.method, newRoute.originalSufix, this.#alias);
+        this.#routes.push(newRoute);
     }
 
     #getRouteIndex(path, method) {
@@ -103,7 +104,7 @@ export class Routes {
 
     registerRoutes(routes) {
         routes.forEach((e) => {
-            this.#registerRoute(e);
+            this.#routes.push(e);
         })
     }
 

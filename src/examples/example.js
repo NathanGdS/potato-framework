@@ -7,9 +7,8 @@ async function bootstrap() {
     
     app.registerGlobalPrefix('api/v1');
     
-    const testRoutes = testPlugin(app).getRoutes();
-    const promiseRoutes = promiseRoutesTest(app).getRoutes();
-    app.registerRoutes([...testRoutes, ...promiseRoutes]);
+    testPlugin(app);
+    promiseRoutesTest(app);
 
     app.listen(3000);
 }

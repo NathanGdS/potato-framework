@@ -1,9 +1,8 @@
 import colours from "./colours.js";
 
 let instance;
-export const LoggerInstance = (message, custom) => {
+export const LoggerInstance = () => {
     if(!instance) {
-        console.log('criando');
         instance = new Logger();
     }
     return instance.buildMessage();
