@@ -14,5 +14,4 @@ export function promiseRoutesTest(app)  {
     
         app.finishRequest(HttpStatusCode.SUCCESS, response);
     });
-    return app;
 }

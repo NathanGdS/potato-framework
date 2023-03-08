@@ -73,6 +73,4 @@ export function testPlugin(app) {
             message: 'teste - DELETE'
         });
     });
-
-    return app;
 }
