@@ -1,7 +1,7 @@
-import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { HttpMethod } from "./constants/HttpMethod.constants.js";
-import { buildRoutePath } from "./utils/buildRoutePath.js";
+import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { RequestCycle } from "./RequestCycle.js";
+import { buildRoutePath } from "./utils/buildRoutePath.js";
 import { getQueries } from "./utils/get-query-params.js";
 import { getRouteParams } from "./utils/get-route-params.js";
 
@@ -83,5 +83,15 @@ export class Routes {
             return await route.requestCycle.executeRequestCycle(requestCycleObject)
         }
         throw new Error('Error in request life cycle request')
+    }
+
+    registerRoutes(routes) {
+        routes.forEach((e) => {
+            this.#routes.push(e);
+        })
+    }
+
+    getRoutes() {
+        return this.#routes;
     }
 }

@@ -26,6 +26,7 @@ export default class SweetPotatoApp extends Routes {
 
             this.#appRes.end();
         }).listen(this.#port, () => {
+            log(`${this.getRoutes().length} routes created`).info();
             log(`App is running on port ${this.#port}`).info();
         });
     }
