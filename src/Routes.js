@@ -8,6 +8,7 @@ import { LoggerInstance } from "./utils/logger.js";
 
 export class Routes {
     #routes = [];
+    #globalPrefix;
     #alias = "RouteHandler"
 
     constructor() { }
@@ -37,11 +38,23 @@ export class Routes {
         requestCycle.addMultiples(args);
         this.#createRoute(httpMethod, sufix, requestCycle.getAllHandlers());
     }
+    
+    registerGlobalPrefix(prefix) {
+        if(!prefix) return;
+
+        if (prefix.at(0) != '/') {
+            prefix = '/'+prefix;
+        }
+
+        this.#globalPrefix = prefix;
+    }
 
     #createRoute(method, sufix, requestCycle) {
         if (sufix.at(0) != '/') {
             sufix = '/'+sufix;
         }
+        sufix = this.#globalPrefix + sufix;
+
         const newRoute = {
             method,
             originalSufix: sufix,
@@ -95,8 +108,7 @@ export class Routes {
     }
 
     #registerRoute(e) {
-        LoggerInstance().registerRoute(e.method, e.originalSufix, this.#alias)
-        // LoggerInstance().info(`${this.#alias} ${e.method} ${e.originalSufix}`);
+        LoggerInstance().registerRoute(e.method, e.originalSufix, this.#alias);
         this.#routes.push(e);
     }
 
