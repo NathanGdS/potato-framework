@@ -79,10 +79,18 @@ class SweetPotato extends Routes {
     }
 }
 
-let instance = new SweetPotato();
-export default function SweetPotatoApp() {
-    if(!instance) {
-        return new SweetPotato();
+// singleton of SweetPotato
+export default class SweetPotatoApp {
+    #instance;
+    constructor() {
+        console.log('created')
+        if(!this.#instance) {
+            this.#instance = new SweetPotato();
+        }
+        return this.#getInstance();
     }
-    return instance;
+
+    #getInstance() {
+        return this.#instance;
+    }
 }
