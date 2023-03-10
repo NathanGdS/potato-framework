@@ -1,14 +1,14 @@
 import { SweetPotatoApp } from "../index.js";
-import { promiseRoutesTest } from "./routes/promise.routes.js";
-import { testPlugin } from "./routes/test.routes.js";
+import { asyncTestRoutes } from "./routes/async-test.routes.js";
+import { syncTestRoutes } from "./routes/sync-test.routes.js";
 
 async function bootstrap() {
-    const app = new SweetPotatoApp();
+    const app = SweetPotatoApp();
     
     app.registerGlobalPrefix('api/v1');
     
-    testPlugin(app);
-    promiseRoutesTest(app);
+    syncTestRoutes(app);
+    asyncTestRoutes(app);
 
     app.listen(3000);
 }

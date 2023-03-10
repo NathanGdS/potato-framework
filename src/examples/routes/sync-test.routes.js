@@ -31,7 +31,7 @@ function apiKeyMiddleare({headers}) {
     }
 }
 
-export function testPlugin(app) {
+export function syncTestRoutes(app) {
     app.get('/teste',promiseMiddleware, apiKeyMiddleare, ({headers, queries, params}) => {
         app.finishRequest(HttpStatusCode.SUCCESS, {
             message: 'teste - GET',

@@ -1,6 +1,6 @@
 import { HttpStatusCode } from "../../constants/HttpStatusCode.constants.js";
 
-export function promiseRoutesTest(app)  {
+export function asyncTestRoutes(app)  {
     app.get('promise', async () => {
         const response = {
             message: 'promise route',
