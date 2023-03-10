@@ -10,8 +10,9 @@ async function bootstrap() {
     
     registerRoutes(app); //loading routes from other files
 
+    //creating a simple route and adding a logger middleware (you can add as many as you wish)
     app.get('example', loggerMiddleware, async ({headers, queries, params}) => {
-        // you can get the headers, body, query params and route params from request and also add multiples middlewares
+        // you can get the headers, body, query params and route params from request
         app.finishRequest(HttpStatusCode.SUCCESS,{ //default code=200
             received: {
                 headers,
