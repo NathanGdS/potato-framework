@@ -3,7 +3,7 @@ import { SweetPotatoApp } from "../index.js";
 import { registerRoutes } from "./routes/index.js";
 
 async function bootstrap() {
-    const app = SweetPotatoApp(); //loading app instance
+    const app = new SweetPotatoApp(); //loading app instance
 
     app.registerGlobalPrefix('api/v1'); //registering global prefix
     
