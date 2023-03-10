@@ -1,3 +1,3 @@
-import App from "./SweetPotato.js";
+import { SweetPotatoAppInstance } from "./SweetPotato.js";
 
-export const SweetPotatoApp = App;
+export const SweetPotatoApp = SweetPotatoAppInstance;

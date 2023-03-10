@@ -80,7 +80,7 @@ class SweetPotato extends Routes {
 }
 
 // singleton of SweetPotato
-export default class SweetPotatoApp {
+export class SweetPotatoAppInstance {
     #instance;
     constructor() {
         if(!this.#instance) {
