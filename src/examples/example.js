@@ -19,7 +19,7 @@ async function bootstrap() {
             }
         })
     });
-    app.listen();//default is 8080
+    app.listen();//default port is 8080
 }
 
 bootstrap();
