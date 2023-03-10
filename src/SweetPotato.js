@@ -16,6 +16,7 @@ class SweetPotato extends Routes {
 
     constructor() {
         super();
+        log().info('Starting a Sweet app for you', this.#alias);
     }
 
     listen(port) {
