@@ -13,8 +13,8 @@ async function promiseMiddleware() {
 function validateParamMiddleware({
     params
 }) {
-    if(params.groupId != Number(1)) {
-        throw new Error('GroupId is not 1')
+    if(params.userId != Number(1)) {
+        throw new Error('UserId is not 1')
     }
 }
 
@@ -41,7 +41,7 @@ export function syncTestRoutes(app) {
         });
     });
     
-    app.get('/teste/:testeId/group/:groupId', validateParamMiddleware, transformMiddleware, ({params}) => {
+    app.get('/teste/:testeId/user/:userId', validateParamMiddleware, transformMiddleware, ({params}) => {
         app.finishRequest(HttpStatusCode.SUCCESS, {
             message: 'teste - GET - id',
             params
