@@ -83,7 +83,6 @@ class SweetPotato extends Routes {
 export default class SweetPotatoApp {
     #instance;
     constructor() {
-        console.log('created')
         if(!this.#instance) {
             this.#instance = new SweetPotato();
         }

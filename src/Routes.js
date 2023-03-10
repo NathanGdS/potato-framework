@@ -9,7 +9,7 @@ import { LoggerInstance } from "./utils/logger.js";
 export class Routes {
     #routes = [];
     #globalPrefix;
-    #alias = "RouteHandler"
+    #alias = "RouteHandler";
 
     constructor() { }
 
@@ -106,11 +106,6 @@ export class Routes {
         routes.forEach((e) => {
             this.#routes.push(e);
         })
-    }
-
-    #registerRoute(e) {
-        LoggerInstance().registerRoute(e.method, e.originalSufix, this.#alias);
-        this.#routes.push(e);
     }
 
     getRoutes() {
