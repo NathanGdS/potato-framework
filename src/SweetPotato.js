@@ -4,7 +4,7 @@ import { RouteNotFoundException } from "./errors/RouteNotFoundException.js";
 import { Routes } from "./Routes.js";
 import { LoggerInstance as log } from "./utils/logger.js";
 
-export default class SweetPotatoApp extends Routes {
+class SweetPotato extends Routes {
     #appReq;
     #appRes;
     #method;
@@ -79,3 +79,10 @@ export default class SweetPotatoApp extends Routes {
     }
 }
 
+let instance;
+export default function SweetPotatoApp() {
+    if(!instance) {
+        return new SweetPotato();
+    }
+    return instance;
+}
