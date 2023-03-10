@@ -79,7 +79,7 @@ class SweetPotato extends Routes {
     }
 }
 
-let instance;
+let instance = new SweetPotato();
 export default function SweetPotatoApp() {
     if(!instance) {
         return new SweetPotato();
