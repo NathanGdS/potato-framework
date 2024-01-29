@@ -1,4 +1,6 @@
-My simple and useless Http Framework called Potato
+Simple Http Framework called Potato Framework!
+
+The main module is called Sweet Potato
 
 Usage example:
 
