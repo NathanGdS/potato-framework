@@ -1,3 +1,3 @@
 export async function loggerMiddleware(everthing) {
-    console.log(everthing);
+  console.log("logger middleware", everthing);
 }

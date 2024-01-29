@@ -1,4 +1,4 @@
-import { HttpStatusCode } from "../../../package/constants/HttpStatusCode.constants.mjs";
+import { HttpStatusCode } from "potato-framework/constants/HttpStatusCode.constants.mjs";
 
 async function promiseMiddleware() {
   const promise = new Promise((resolve) => {
