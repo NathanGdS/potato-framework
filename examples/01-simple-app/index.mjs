@@ -1,5 +1,5 @@
-import { HttpStatusCode } from "../../package/constants/HttpStatusCode.constants.mjs";
-import { SweetPotatoApp } from "../../package/index.mjs";
+import { SweetPotatoApp } from "potato-framework";
+import { CONSTANTS } from "potato-framework/constants/index.mjs";
 import { loggerMiddleware } from "./middlewares/logger.middleware.mjs";
 import { registerRoutes } from "./routes/index.mjs";
 
@@ -13,7 +13,7 @@ async function bootstrap() {
   //creating a simple route and adding a logger middleware (you can add as many as you want)
   app.get("example", loggerMiddleware, async ({ headers, queries, params }) => {
     // you can get the headers, body, query params and route params from request
-    app.finishRequest(HttpStatusCode.SUCCESS, {
+    app.finishRequest(CONSTANTS.HttpStatusCode.SUCCESS, {
       //default code=200
       received: {
         headers,

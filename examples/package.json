@@ -1,0 +1,12 @@
+{
+  "name": "sweet-potato-examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "example-01": "node ./01-simple-app/index.mjs"
+  },
+  "author": "",
+  "license": "ISC"
+}
