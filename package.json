@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
-    "start:example": "node ./src/examples/example.js"
+    "start:example-01": "node ./examples/01-simple-app/index.mjs"
   },
   "keywords": [],
   "author": "",
