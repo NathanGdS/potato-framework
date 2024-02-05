@@ -1,5 +1,5 @@
 import http from "node:http";
-import { Resource } from "./Routes.mjs";
+import { Resource } from "./Resource.mjs";
 import { HttpStatusCode } from "./constants/HttpStatusCode.constants.mjs";
 import { CONSTANTS } from "./constants/index.mjs";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.mjs";
