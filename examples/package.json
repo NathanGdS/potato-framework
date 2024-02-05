@@ -9,5 +9,8 @@
     "example-02": "node ./02-routes-with-resources/index.mjs"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "potato-framework": "^1.0.4"
+  }
 }
