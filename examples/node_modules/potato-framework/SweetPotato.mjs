@@ -1,11 +1,11 @@
 import http from "node:http";
-import { Routes } from "./Routes.mjs";
+import { Resource } from "./Routes.mjs";
 import { HttpStatusCode } from "./constants/HttpStatusCode.constants.mjs";
 import { CONSTANTS } from "./constants/index.mjs";
 import { RouteNotFoundException } from "./errors/RouteNotFoundException.mjs";
 import { LoggerInstance as log } from "./utils/logger.mjs";
 
-class SweetPotato extends Routes {
+export class SweetPotato extends Resource {
   #appReq;
   #appRes;
   #method;
@@ -85,20 +85,5 @@ class SweetPotato extends Routes {
     this.#appRes.writeHead(code);
     this.#appRes.write(JSON.stringify(message));
     this.#appRes.end();
-  }
-}
-
-// singleton of SweetPotato
-export class SweetPotatoAppInstance {
-  #instance;
-  constructor() {
-    if (!this.#instance) {
-      this.#instance = new SweetPotato();
-    }
-    return this.#getInstance();
-  }
-
-  #getInstance() {
-    return this.#instance;
   }
 }

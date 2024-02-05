@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "example-01": "node ./01-simple-app/index.mjs"
+    "example-01": "node ./01-simple-app/index.mjs",
+    "example-02": "node ./02-routes-with-resources/index.mjs"
   },
   "author": "",
   "license": "ISC"
