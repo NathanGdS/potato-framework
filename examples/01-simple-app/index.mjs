@@ -1,10 +1,10 @@
-import { SweetPotatoApp } from "potato-framework";
+import { SweetPotato } from "potato-framework/SweetPotato.mjs";
 import { CONSTANTS } from "potato-framework/constants/index.mjs";
 import { loggerMiddleware } from "./middlewares/logger.middleware.mjs";
 import { registerRoutes } from "./routes/index.mjs";
 
 async function bootstrap() {
-  const app = new SweetPotatoApp(); //loading app instance
+  const app = new SweetPotato(); //loading app instance
 
   app.registerGlobalPrefix("api/v1"); //registering global prefix
 
