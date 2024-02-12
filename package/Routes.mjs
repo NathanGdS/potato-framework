@@ -46,6 +46,8 @@ export class Routes {
       prefix = "/" + prefix;
     }
 
+    LoggerInstance().registerPrefix(prefix, this.#alias);
+
     this.#globalPrefix = prefix;
   }
 

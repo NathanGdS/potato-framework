@@ -41,6 +41,12 @@ class Logger {
     this.#show();
   }
 
+  registerPrefix(prefix, funcName) {
+    this.#message += this.#turnYellow(`[${funcName}]`);
+    this.#message += this.#turnGreen(`Global prefix {${prefix}} registered`);
+    this.#show();
+  }
+
   #getDate() {
     return ` - ${colours.fg.gray}${new Date().toISOString("DD-MM-yyyy")}${
       colours.reset
