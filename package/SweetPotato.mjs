@@ -79,11 +79,17 @@ export class SweetPotato extends Resource {
   }
 
   finishRequest(code, message) {
-    if (!code) {
-      code = HttpStatusCode.SUCCESS;
+    try {
+      if (!code) {
+        code = HttpStatusCode.SUCCESS;
+      }
+      this.#appRes.writeHead(code);
+      this.#appRes.write(JSON.stringify(message));
+      this.#appRes.end();
+      return;
+    } catch (error) {
+      this.#appRes.write(JSON.stringify(message));
+      this.#appRes.end();
     }
-    this.#appRes.writeHead(code);
-    this.#appRes.write(JSON.stringify(message));
-    this.#appRes.end();
   }
 }
