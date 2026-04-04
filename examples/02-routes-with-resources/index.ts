@@ -1,5 +1,5 @@
-import { SweetPotato, HttpMethod, HttpStatusCode } from "../../package/dist/index.js";
-import { ExternalClass } from "./exeternal-class.mjs";
+import { SweetPotato, HttpMethod, HttpStatusCode, HandlerContext } from "../../package/src/index";
+import { ExternalClass } from "./exeternal-class";
 
 async function bootstrap() {
   const app = new SweetPotato();
@@ -13,9 +13,8 @@ async function bootstrap() {
         method: HttpMethod.GET,
         sufix: ":id",
       },
-      async ({ headers, queries, params }) => {
+      async ({ headers, queries, params }: HandlerContext) => {
         app.finishRequest(HttpStatusCode.SUCCESS, {
-          //default code=200
           received: {
             headers,
             queries,
@@ -28,7 +27,7 @@ async function bootstrap() {
       {
         method: HttpMethod.POST,
       },
-      (data) => new ExternalClass(app).execute(data)
+      (data: HandlerContext) => new ExternalClass(app).execute(data)
     );
 
   app.listen();

@@ -5,12 +5,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "example-01": "node ./01-simple-app/index.mjs",
-    "example-02": "node ./02-routes-with-resources/index.mjs"
+    "example-01": "tsx ./01-simple-app/index.ts",
+    "example-02": "tsx ./02-routes-with-resources/index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "potato-framework": "^1.0.4"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }
