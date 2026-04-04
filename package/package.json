@@ -3,10 +3,13 @@
   "version": "1.0.5",
   "description": "",
   "type": "module",
-  "main": "index.mjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "ex-01": "node ./examples/01-simple-app/index.mjs",
-    "ex-02": "node ./examples/01-simple-app/index.mjs",
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "ex-01": "node ../examples/01-simple-app/index.mjs",
+    "ex-02": "node ../examples/02-routes-with-resources/index.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
@@ -15,7 +18,10 @@
   "author": "Nathan G. Santos",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^25.5.2",
     "@vitest/coverage-v8": "^4.1.2",
+    "rimraf": "^6.1.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.2"
   }
 }

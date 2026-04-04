@@ -1,4 +1,4 @@
-import { HttpStatusCode } from "potato-framework/constants/HttpStatusCode.constants.mjs";
+import { HttpStatusCode } from "../../../package/dist/index.js";
 
 export function asyncTestRoutes(app) {
   app.get("promise", async () => {

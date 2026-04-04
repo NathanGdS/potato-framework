@@ -1,5 +1,4 @@
-import { SweetPotato } from "potato-framework/SweetPotato.mjs";
-import { HttpMethod } from "potato-framework/constants/HttpMethod.constants.mjs";
+import { SweetPotato, HttpMethod, HttpStatusCode } from "../../package/dist/index.js";
 import { ExternalClass } from "./exeternal-class.mjs";
 
 async function bootstrap() {

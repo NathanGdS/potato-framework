@@ -1,19 +1,16 @@
-import { SweetPotato } from "potato-framework/SweetPotato.mjs";
-import { CONSTANTS } from "potato-framework/constants/index.mjs";
+import { SweetPotato, HttpStatusCode } from "../../package/dist/index.js";
 import { loggerMiddleware } from "./middlewares/logger.middleware.mjs";
 import { registerRoutes } from "./routes/index.mjs";
 
 async function bootstrap() {
-  const app = new SweetPotato(); //loading app instance
+  const app = new SweetPotato();
 
-  app.registerGlobalPrefix("api/v1"); //registering global prefix
+  app.registerGlobalPrefix("api/v1");
 
-  registerRoutes(app); //loading routes from other files
+  registerRoutes(app);
 
-  //creating a simple route and adding a logger middleware (you can add as many as you want)
   app.get("example", loggerMiddleware, async ({ headers, queries, params }) => {
-    // you can get the headers, body, query params and route params from request
-    app.finishRequest(CONSTANTS.codes.SUCCESS, {
+    app.finishRequest(HttpStatusCode.SUCCESS, {
       //default code=200
       received: {
         headers,

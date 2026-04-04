@@ -1,4 +1,4 @@
-import { HttpStatusCode } from "potato-framework/constants/HttpStatusCode.constants.mjs";
+import { HttpStatusCode } from "../../package/dist/index.js";
 
 export class ExternalClass {
   constructor(app) {
