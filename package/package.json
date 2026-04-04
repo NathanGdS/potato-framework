@@ -6,9 +6,16 @@
   "main": "index.mjs",
   "scripts": {
     "ex-01": "node ./examples/01-simple-app/index.mjs",
-    "ex-02": "node ./examples/01-simple-app/index.mjs"
+    "ex-02": "node ./examples/01-simple-app/index.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "Nathan G. Santos",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.2",
+    "vitest": "^4.1.2"
+  }
 }
