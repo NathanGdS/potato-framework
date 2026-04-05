@@ -1,10 +1,10 @@
-# Arquitetura do Potato Framework
+# Potato Framework Architecture
 
-## Visão Geral da Arquitetura
+## Architecture Overview
 
-A Potato Framework segue um padrão de **camadas encadeadas** onde cada classe tem responsabilidades bem definidas e cooperam para processar requisições HTTP.
+Potato Framework follows a **layered pattern** where each class has well-defined responsibilities and cooperates to process HTTP requests.
 
-### Diagrama de Classes
+### Class Diagram
 
 ```mermaid
 classDiagram
@@ -51,17 +51,17 @@ classDiagram
 
     SweetPotato --|> Resource : extends
     Resource --|> Routes : extends
-    SweetPotato --> RequestCycle : usa
-    Routes --> RequestCycle : usa
-    RequestCycle --> HandlerContext : processa
-    HandlerContext --> Routes : usado em route match
+    SweetPotato --> RequestCycle : uses
+    Routes --> RequestCycle : uses
+    RequestCycle --> HandlerContext : processes
+    HandlerContext --> Routes : used in route match
 ```
 
-## Componentes Detalhados
+## Detailed Components
 
-### 1. SweetPotato (Camada de Infraestrutura)
+### 1. SweetPotato (Infrastructure Layer)
 
-**Responsabilidade**: Servidor HTTP e ciclo de vida da requisição
+**Responsibility**: HTTP server and request lifecycle
 
 ```typescript
 export class SweetPotato extends Resource {
@@ -76,30 +76,30 @@ export class SweetPotato extends Resource {
 }
 ```
 
-**Métodos Principais**:
+**Main Methods**:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `listen(port)` | Inicia o servidor HTTP |
-| `finishRequest(code, message)` | Envia resposta HTTP |
-| `defineGlobalAttributes(req, res)` | Captura dados globais da requisição |
-| `defineBodyAttributes()` | Lê e parseia o body da requisição |
-| `handleRoute()` | Encaminha para o processo de roteamento |
+| `listen(port)` | Starts HTTP server |
+| `finishRequest(code, message)` | Sends HTTP response |
+| `defineGlobalAttributes(req, res)` | Captures global request data |
+| `defineBodyAttributes()` | Reads and parses request body |
+| `handleRoute()` | Forwards to routing process |
 
-**Fluxo de Execução no listen()**:
+**Execution Flow in listen()**:
 
 ```javascript
 http.createServer(async (req, res) => {
-  // 1. Captura dados globais
+  // 1. Capture global data
   this.defineGlobalAttributes(req, res);
   
-  // 2. Lê e parseia body
+  // 2. Read and parse body
   await this.defineBodyAttributes();
   
-  // 3. Encontra e executa rota
+  // 3. Find and execute route
   await this.handleRoute();
   
-  // 4. Finaliza se ainda não terminou
+  // 4. Finalize if not ended
   if (!this.appRes!.writableEnded) {
     this.appRes!.end();
   }
@@ -108,46 +108,46 @@ http.createServer(async (req, res) => {
 
 ---
 
-### 2. Routes (Camada de Roteamento)
+### 2. Routes (Routing Layer)
 
-**Responsabilidade**: Armazenar rotas e realizar match
+**Responsibility**: Store routes and perform matching
 
 ```typescript
 interface Route {
   method: string;                    // GET, POST, PUT, etc.
-  originalSufix: string;            // Caminho original (ex: "/users/:id")
-  sufix: RegExp;                    // Regex compilada para match
-  params: Record<string, string> | null;  // Parâmetros extraídos
+  originalSufix: string;            // Original path (ex: "/users/:id")
+  sufix: RegExp;                    // Compiled regex for matching
+  params: Record<string, string> | null;  // Extracted parameters
   queries: Record<string, string> | null; // Query parameters
-  requestCycle: RequestCycle;       // Handlers associados
+  requestCycle: RequestCycle;       // Associated handlers
 }
 ```
 
-**Métodos Principais**:
+**Main Methods**:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `get/post/put/patch/delete(sufix, ...handlers)` | Registra rotas |
-| `registerGlobalPrefix(prefix)` | Define prefixo global (ex: "/api/v1") |
-| `executeRequestCycle(path, method, body, headers)` | Executa handlers da rota encontrada |
-| `getRouteIndex(path, method)` | Busca índice da rota correspondente |
-| `createRoute(method, sufix, handlers)` | Cria nova rota |
+| `get/post/put/patch/delete(sufix, ...handlers)` | Register routes |
+| `registerGlobalPrefix(prefix)` | Set global prefix (ex: "/api/v1") |
+| `executeRequestCycle(path, method, body, headers)` | Execute handlers of found route |
+| `getRouteIndex(path, method)` | Find index of matching route |
+| `createRoute(method, sufix, handlers)` | Create new route |
 
-**Lógica de Match**:
+**Matching Logic**:
 
 ```typescript
 private getRouteIndex(path: string, method: string): number {
   return this.routes.findIndex((e) => {
-    // 1. Tenta executar regex da rota no path
+    // 1. Try executing route regex on path
     const regexVerifier = e.sufix.exec(path);
     if (!regexVerifier) return false;
     
-    // 2. Verifica se método coincide
+    // 2. Check if method matches
     if (e.method !== method) return false;
     
-    // 3. Verifica se o path combina
+    // 3. Check if path matches
     if (regexVerifier.find((t) => t === path)) {
-      // 4. Extrai parâmetros e queries
+      // 4. Extract parameters and queries
       e.params = getRouteParams(regexVerifier.groups);
       e.queries = getQueries(regexVerifier.groups?.['query']);
       return true;
@@ -159,9 +159,9 @@ private getRouteIndex(path: string, method: string): number {
 
 ---
 
-### 3. Resource (Camada de DSL)
+### 3. Resource (DSL Layer)
 
-**Responsabilidade**: Fluent API para definição de recursos
+**Responsibility**: Fluent API for resource definition
 
 ```typescript
 export class Resource extends Routes {
@@ -170,15 +170,15 @@ export class Resource extends Routes {
 }
 ```
 
-**Métodos Principais**:
+**Main Methods**:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `resource(sufix)` | Define o sufixo base para definição de handlers |
-| `defineHandler(input, ...args)` | Define um handler para um método HTTP |
-| `defaultMiddlewares(...args)` | Adiciona middlewares padrão para todos os handlers do recurso |
+| `resource(sufix)` | Defines base suffix for handler definition |
+| `defineHandler(input, ...args)` | Defines handler for an HTTP method |
+| `defaultMiddlewares(...args)` | Adds default middlewares for all resource handlers |
 
-**Uso do Resource DSL**:
+**Resource DSL Usage**:
 
 ```typescript
 app.resource("message")
@@ -187,16 +187,16 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.POST }, handler);
 ```
 
-**Expansão**:
+**Expansion**:
 - `message/:id` (GET) → `/message/:id`
 - `message` (GET) → `/message`
 - `message` (POST) → `/message`
 
 ---
 
-### 4. RequestCycle (Camada de Execução)
+### 4. RequestCycle (Execution Layer)
 
-**Responsabilidade**: Executar handlers em sequência
+**Responsibility**: Execute handlers in sequence
 
 ```typescript
 export class RequestCycle {
@@ -208,24 +208,24 @@ export class RequestCycle {
 }
 ```
 
-**Métodos Principais**:
+**Main Methods**:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `add(func)` | Adiciona handler individualmente |
-| `addMultiples(funcs)` | Adiciona múltiplos handlers |
-| `executeRequestCycle(data)` | Executa todos os handlers em sequência |
-| `reset()` | Reseta handlers |
-| `getAllHandlers()` | Retorna todos os handlers |
+| `add(func)` | Add handler individually |
+| `addMultiples(funcs)` | Add multiple handlers |
+| `executeRequestCycle(data)` | Execute all handlers in sequence |
+| `reset()` | Reset handlers |
+| `getAllHandlers()` | Return all handlers |
 
-**Lógica de Execução com Detecção Async**:
+**Execution Logic with Async Detection**:
 
 ```typescript
 async executeRequestCycle(data: HandlerContext): Promise<void> {
   for (let i = 0; i < this.handlers.length; i++) {
     const actualHandler = this.handlers[i];
     
-    // Detecta se é async usando constructor.name ou instanceof
+    // Detect if it's async using constructor.name or instanceof
     if (!isPromise(actualHandler)) {
       actualHandler(data);  // Sync
     } else {
@@ -237,9 +237,9 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
 
 ---
 
-## Fluxo Completo de uma Requisição
+## Complete Request Flow
 
-### Diagrama de Sequência
+### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -274,11 +274,11 @@ sequenceDiagram
     Response-->>Client: HTTP Response (200 OK)
 ```
 
-### Passo a Passo
+### Step by Step
 
 1. **SweetPotato.receive()**
-   - Recebe requisição HTTP nativa
-   - Chama `defineGlobalAttributes()` para capturar:
+   - Receives native HTTP request
+   - Calls `defineGlobalAttributes()` to capture:
      - `req` (IncomingMessage)
      - `res` (ServerResponse)
      - `method` (GET, POST, etc.)
@@ -286,52 +286,52 @@ sequenceDiagram
      - `headers`
 
 2. **SweetPotato.defineBodyAttributes()**
-   - Lê chunks do body via `for await (const chunk of req)`
-   -Concatena buffers
-   - Parseia JSON com `JSON.parse()`
-   - Armazena em `dataBody`
+   - Reads body chunks via `for await (const chunk of req)`
+   - Concatenates buffers
+   - Parses JSON with `JSON.parse()`
+   - Stores in `dataBody`
 
 3. **SweetPotato.handleRoute()**
-   - Chama `executeRequestCycle()` do Routes
-   - Trata exceptions (404, 500)
+   - Calls `executeRequestCycle()` from Routes
+   - Handles exceptions (404, 500)
 
 4. **Routes.executeRequestCycle()**
-   - Chama `getRouteIndex()` para encontrar rota correspondente
-   - Cria `HandlerContext` com:
-     - body (do SweetPotato)
-     - params (extraídos do regex)
-     - headers (do SweetPotato)
-     - queries (extraídos do querystring)
-   - Executa `RequestCycle.execute()`
+   - Calls `getRouteIndex()` to find matching route
+   - Creates `HandlerContext` with:
+     - body (from SweetPotato)
+     - params (extracted from regex)
+     - headers (from SweetPotato)
+     - queries (extracted from querystring)
+   - Executes `RequestCycle.execute()`
 
 5. **RequestCycle.execute()**
-   - Itera sobre handlers
-   - Detecta async via `isPromise()`
-   - Chama sync ou await async
+   - Iterates over handlers
+   - Detects async via `isPromise()`
+   - Calls sync or await async
 
 6. **finishRequest()**
-   - Escreve `res.writeHead(statusCode)`
-   - Escreve `res.write(JSON.stringify(data))`
-   - Chama `res.end()`
+   - Writes `res.writeHead(statusCode)`
+   - Writes `res.write(JSON.stringify(data))`
+   - Calls `res.end()`
 
 ---
 
-## Cores e Logs
+## Colors and Logs
 
-O framework usa códigos ANSI para colorir logs no terminal:
+The framework uses ANSI codes to color logs in the terminal:
 
 ```typescript
 export const colours: Colours = {
   reset: '\x1b[0m',
   fg: {
-    green: '\x1b[32m',  // Logs de info
-    yellow: '\x1b[33m', // Nomes de classes
+    green: '\x1b[32m',  // Info logs
+    yellow: '\x1b[33m', // Class names
     gray: '\x1b[90m',   // Timestamps
   }
 };
 ```
 
-**Padrão de Log**:
+**Log Pattern**:
 ```
 [Sweet-Potato] - 2026-04-04T19:02:00.000Z - [RouteHandler] Mapped {/users/:id, GET}
 [Sweet-Potato] - 2026-04-04T19:02:00.000Z - [SweetPotato] 3 routes created
@@ -340,26 +340,26 @@ export const colours: Colours = {
 
 ---
 
-## Padrões de Projeto Utilizados
+## Design Patterns Used
 
-| Padrão | Uso no Framework |
+| Pattern | Usage in Framework |
 |--------|-----------------|
-| **Singleton** | `SweetPotatoApp()` - garantia de única instância |
-| **Chain of Responsibility** | `RequestCycle` - handlers em sequência |
-| **Strategy** | `Routes` - diferentes estratégias de match |
-| **Template Method** | `SweetPotato` - define骨架, subclasses implementam |
+| **Singleton** | `SweetPotatoApp()` - ensures single instance |
+| **Chain of Responsibility** | `RequestCycle` - handlers in sequence |
+| **Strategy** | `Routes` - different match strategies |
+| **Template Method** | `SweetPotato` - defines skeleton, subclasses implement |
 | **Fluent Interface** | `Resource` - chainable API |
 
 ---
 
-## Resumo de Responsabilidades
+## Responsibility Summary
 
-| Classe | Responsabilidade Única |
+| Class | Unique Responsibility |
 |--------|-----------------------|
-| **SweetPotato** | Servidor HTTP e ciclo de vida da requisição |
-| **Routes** | Armazenamento e match de rotas |
-| **Resource** | Fluent API para definição de rotas |
-| **RequestCycle** | Execução sequencial de handlers |
-| **Utils** | Funções helper (regex, params, logging) |
+| **SweetPotato** | HTTP server and request lifecycle |
+| **Routes** | Route storage and matching |
+| **Resource** | Fluent API for route definition |
+| **RequestCycle** | Sequential handler execution |
+| **Utils** | Helper functions (regex, params, logging) |
 
-Cada classe tem **uma única responsabilidade**, seguindo o princípio SRP (Single Responsibility Principle).
+Each class has **single responsibility**, following the SRP (Single Responsibility Principle).

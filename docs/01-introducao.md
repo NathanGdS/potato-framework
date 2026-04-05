@@ -1,23 +1,23 @@
-# Introdução ao Potato Framework
+# Introduction to Potato Framework
 
-## Visão Geral
+## Overview
 
-O Potato Framework é uma **HTTP server framework lightweight** para Node.js, projetada com os seguintes princípios:
+Potato Framework is a **lightweight HTTP server framework** for Node.js, designed with the following principles:
 
-- **Zero dependências externas** - Usa apenas o módulo nativo `http`
-- **ES Modules puro** - Sem build steps ou transpilação
-- **Simplicidade** - Código pequeno, fácil de entender e debugar
-- **TypeScript-first** - Escrito em TypeScript, distribuído como ES Modules
+- **Zero external dependencies** - Uses only native `http` module
+- **Pure ES Modules** - No build steps or transpilation
+- **Simplicity** - Small code, easy to understand and debug
+- **TypeScript-first** - Written in TypeScript, distributed as ES Modules
 
-## Arquitetura
+## Architecture
 
-### Estrutura de Classes
+### Class Structure
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     SweetPotato (Server)                    │
-│  - Cria servidor HTTP                                       │
-│  - Gerencia requisições/Respostas                           │
+│  - Creates HTTP server                                      │
+│  - Manages request/response                                 │
 │  - Extends Resource                                         │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -25,9 +25,9 @@ O Potato Framework é uma **HTTP server framework lightweight** para Node.js, pr
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       Resource (DSL)                        │
-│  - Fluent API para definição de rotas                       │
-│  - Suporta .get(), .post(), .put(), .patch(), .delete()    │
-│  - Suporta Resource DSL                                     │
+│  - Fluent API for route definition                          │
+│  - Supports .get(), .post(), .put(), .patch(), .delete()   │
+│  - Supports Resource DSL                                    │
 │  - Extends Routes                                           │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -35,106 +35,106 @@ O Potato Framework é uma **HTTP server framework lightweight** para Node.js, pr
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        Routes (Engine)                      │
-│  - Armazena todas as rotas                                  │
-│  - Realiza match de requisição para rota                    │
-│  - Executa RequestCycle                                     │
+│  - Stores all routes                                        │
+│  - Matches request to route                                 │
+│  - Executes RequestCycle                                   │
 └─────────────────────────────────────────────────────────────┘
                             │
                             │ uses
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    RequestCycle (Executor)                  │
-│  - Executa handlers em sequência                            │
-│  - Detecta e espera por async handlers                      │
-│  - Gerencia middlewares                                       │
+│                    RequestCycle (Executor)                 │
+│  - Executes handlers in sequence                           │
+│  - Detects and waits for async handlers                    │
+│  - Manages middlewares                                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Responsabilidades por Classe
+### Class Responsibilities
 
-| Classe | Responsabilidade |
+| Class | Responsibility |
 |--------|-----------------|
-| `SweetPotato` | Main server class - cria servidor HTTP, gerencia request/response lifecycle |
-| `Resource` | Fluent DSL - definição de rotas com métodos HTTP e recursos |
-| `Routes` | Engine de roteamento - armazena rotas, faz match, executa handlers |
-| `RequestCycle` | Executor - executa handlers/middlewares em sequência |
+| `SweetPotato` | Main server class - creates HTTP server, manages request/response lifecycle |
+| `Resource` | Fluent DSL - route definition with HTTP methods and resources |
+| `Routes` | Routing engine - stores routes, matches, executes handlers |
+| `RequestCycle` | Executor - executes handlers/middlewares in sequence |
 
-## Filosofia de Design
+## Design Philosophy
 
 ### 1. Handler Contract
 
-Todos os handlers (middlewares e rotas) seguem o mesmo contrato:
+All handlers (middlewares and routes) follow the same contract:
 
 ```typescript
 type RouteHandler = (ctx: HandlerContext) => void | Promise<void>;
 ```
 
-O contexto passado para cada handler é **imutável** (`Object.freeze`):
+The context passed to each handler is **immutable** (`Object.freeze`):
 
 ```typescript
 interface HandlerContext {
-  body: any;              // Body JSON parseado
-  params: Record<string, string> | null;  // Parâmetros de rota (:id)
+  body: any;                                      // Parsed JSON body
+  params: Record<string, string> | null;  // Route parameters (:id)
   headers: IncomingHttpHeaders;
   queries: Record<string, string> | null; // Query parameters
 }
 ```
 
-### 2. Sem next() - Chaining Explícito
+### 2. No next() - Explicit Chaining
 
-Ao contrário de Express/Fastify, **não existe `next()`**. Os handlers são executados em sequência:
+Unlike Express/Fastify, **there is no `next()`**. Handlers execute in sequence:
 
 ```javascript
 // Potato Framework
 app.get("/users", middleware1, middleware2, handler);
 
 // Express
-app.get("/users", middleware1, middleware2, handler); // next() é implicitamente chamado
+app.get("/users", middleware1, middleware2, handler); // next() is implicitly called
 ```
 
-Cada handler tem acesso ao contexto completo e é responsável por chamar `app.finishRequest()`.
+Each handler has access to the full context and is responsible for calling `app.finishRequest()`.
 
 ### 3. Request Lifecycle
 
 ```
 HTTP Request
     │
-    ├─→ SweetPotato (parseia headers, método, path)
-    ├─→ defineBodyAttributes (lê body, parseia JSON)
-    ├─→ Routes.executeRequestCycle (busca rota correspondente)
-    ├─→ RequestCycle.execute (executa handlers em ordem)
+    ├─→ SweetPotato (parses headers, method, path)
+    ├─→ defineBodyAttributes (reads body, parses JSON)
+    ├─→ Routes.executeRequestCycle (finds matching route)
+    ├─→ RequestCycle.execute (executes handlers in order)
     │       ├─→ Handler 1
     │       ├─→ Handler 2 (middleware)
-    │       └─→ Handler 3 (rote)
-    ├─→ finishRequest (envia resposta)
+    │       └─→ Handler 3 (route)
+    ├─→ finishRequest (sends response)
     └─→ HTTP Response
 ```
 
-## Quando Usar
+## When to Use
 
-| Cenário | Recomendação |
+| Scenario | Recommendation |
 |---------|-------------|
-| Microservices simples | ✅ Potato Framework |
-| API REST complexa com muitos middlewares | ⚠️ Considere Express/NestJS |
-| Aplicações que precisam de WebSocket | ❌ Use outro framework |
-| Learning/educação | ✅ Excelente opção |
+| Simple microservices | ✅ Potato Framework |
+| Complex REST API with many middlewares | ⚠️ Consider Express/NestJS |
+| Applications needing WebSocket | ❌ Use another framework |
+| Learning/education | ✅ Excellent choice |
 
-## Estrutura de Código
+## Code Structure
 
 ```
 package/
-├── SweetPotato.mjs       # Classe principal do servidor
-├── Routes.mjs            # Engine de roteamento
-├── Resource.mjs          # DSL para definição de rotas
-├── RequestCycle.mjs      # Execução de handlers
+├── SweetPotato.mjs       # Main server class
+├── Routes.mjs            # Routing engine
+├── Resource.mjs          # DSL for route definition
+├── RequestCycle.mjs      # Handler execution
 ├── SweetPotatoApp.mjs    # Singleton wrapper
 ├── constants/            # HttpMethod, HttpStatusCode
 ├── errors/               # Error classes
 └── utils/                # Helpers (buildRoutePath, logger, etc.)
 ```
 
-## Versão eCompatibilidade
+## Version Compatibility
 
 - **Node.js**: 18.12.0+
-- **TypeScript**: 5.0+ (para desenvolvimento)
-- **ES Modules**: Módulos ES nativos (.mjs/.ts)
+- **TypeScript**: 5.0+ (for development)
+- **ES Modules**: Native ES modules (.mjs/.ts)

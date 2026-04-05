@@ -1,8 +1,8 @@
-# SweetPotato - Classe Principal do Servidor
+# SweetPotato - Main Server Class
 
-## Visão Geral
+## Overview
 
-`SweetPotato` é a classe principal do framework. Ela estende `Resource`, cria o servidor HTTP nativo do Node.js e gerencia o ciclo de vida completo de cada requisição.
+`SweetPotato` is the main class of the framework. It extends `Resource`, creates the native Node.js HTTP server, and manages the complete lifecycle of each request.
 
 ```typescript
 export class SweetPotato extends Resource {
@@ -13,7 +13,7 @@ export class SweetPotato extends Resource {
   private dataBody: unknown = null;
   private port: number = DEFAULT_PORT;
   private headers: IncomingMessage['headers'] = {};
-  private appName = 'App';
+  private private appName = 'App';
 }
 ```
 
@@ -26,25 +26,25 @@ constructor() {
 }
 ```
 
-- Chama `super()` para inicializar `Resource` e `Routes`
-- Registra log inicial com o nome da aplicação
+- Calls `super()` to initialize `Resource` and `Routes`
+- Registers initial log with application name
 
 ## listen(port?: number)
 
-**Responsabilidade**: Iniciar o servidor HTTP e escutar requisições
+**Responsibility**: Start the HTTP server and listen for requests
 
 ```typescript
 listen(port?: number): void {
-  this.port = port ?? DEFAULT_PORT;  // 8000 por padrão
+  this.port = port ?? DEFAULT_PORT;  // Default 8000
   
   http
     .createServer(async (req: IncomingMessage, res: ServerResponse) => {
-      this.defineGlobalAttributes(req, res);   // 1. Captura dados
-      await this.defineBodyAttributes();        // 2. Lê body
-      await this.handleRoute();                 // 3. Encontra rota
+      this.defineGlobalAttributes(req, res);   // 1. Capture data
+      await this.defineBodyAttributes();        // 2. Read body
+      await this.handleRoute();                 // 3. Find route
 
       if (!this.appRes!.writableEnded) {
-        this.appRes!.end();                     // 4. Finaliza se necessário
+        this.appRes!.end();                     // 4. Finalize if needed
       }
     })
     .listen(this.port, () => {
@@ -54,22 +54,22 @@ listen(port?: number): void {
 }
 ```
 
-### Fluxo no createServer
+### Flow in createServer
 
 1. **defineGlobalAttributes(req, res)**
-   - Captura `req` e `res` para uso posterior
-   - Captura `method`, `url`, `headers`
+   - Captures `req` and `res` for later use
+   - Captures `method`, `url`, `headers`
 
 2. **defineBodyAttributes()**
-   - Lê todos os chunks do body
-   - Parseia JSON
+   - Reads all body chunks
+   - Parses JSON
 
 3. **handleRoute()**
-   - Executa o pipeline de roteamento
-   - Trata erros (404, 500)
+   - Executes routing pipeline
+   - Handles errors (404, 500)
 
 4. **res.end()**
-   - Finaliza resposta se não foi feito antes
+   - Finalizes response if not already done
 
 ---
 
@@ -85,8 +85,9 @@ private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void 
 }
 ```
 
-**Captura**:
-| Atributo | Fonte | Valor Exemplo |
+**Captures**:
+
+| Attribute | Source | Example Value |
 |----------|-------|----------------|
 | `appReq` | `req` | IncomingMessage |
 | `appRes` | `res` | ServerResponse |
@@ -102,26 +103,26 @@ private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void 
 private async defineBodyAttributes(): Promise<void> {
   const buffers: Buffer[] = [];
 
-  // Lê todos os chunks do body
+  // Read all body chunks
   for await (const chunk of this.appReq!) {
     buffers.push(chunk as Buffer);
   }
 
   if (buffers.length) {
-    // Parseia JSON
+    // Parse JSON
     this.dataBody = JSON.parse(Buffer.concat(buffers).toString());
   }
 }
 ```
 
-**Comportamento**:
-- Se body vazio: `dataBody = null`
-- Se body JSON: parseia para objeto
-- Se body não-JSON: lançará erro (deve ser tratado)
+**Behavior**:
+- If empty body: `dataBody = null`
+- If JSON body: parses to object
+- If non-JSON body: will throw error (should be handled)
 
-**Limitações**:
-- Apenas suporta JSON no body
-- Não há tratamento de erros de parse (deve adicionar try/catch)
+**Limitations**:
+- Only supports JSON in body
+- No parse error handling (should add try/catch)
 
 ---
 
@@ -149,10 +150,10 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-**Fluxo**:
-1. Tenta executar o pipeline de roteamento
-2. Se `RouteNotFoundException`: retorna 404
-3. Se outro erro: retorna 500
+**Flow**:
+1. Tries to execute routing pipeline
+2. If `RouteNotFoundException`: returns 404
+3. If other error: returns 500
 
 ---
 
@@ -161,94 +162,94 @@ private async handleRoute(): Promise<void> {
 ```typescript
 finishRequest(code: number | undefined, message: unknown): void {
   try {
-    const statusCode = code ?? HttpStatusCode.SUCCESS;  // 200 por padrão
+    const statusCode = code ?? HttpStatusCode.SUCCESS;  // Default 200
     this.appRes!.writeHead(statusCode);
     this.appRes!.write(JSON.stringify(message));
     this.appRes!.end();
   } catch {
-    // Fallback se writeHead já tiver sido chamado
+    // Fallback if writeHead already called
     this.appRes!.write(JSON.stringify(message));
     this.appRes!.end();
   }
 }
 ```
 
-**Comportamento**:
-- Define statusCode com `writeHead()`
-- Escreve JSON no body
-- Finaliza resposta com `end()`
-- Tem fallback para casos onde `writeHead()` falha (headers já enviados)
+**Behavior**:
+- Sets statusCode with `writeHead()`
+- Writes JSON in body
+- Finalizes response with `end()`
+- Has fallback for cases where `writeHead()` fails (headers already sent)
 
-**Notas**:
-- O `try-catch` protege contra `[ERR_HTTP_HEADERS_SENT]`
-- Se já escreveu headers, apenas escreve o body
+**Notes**:
+- Try-catch protects against `[ERR_HTTP_HEADERS_SENT]`
+- If headers already written, only writes body
 
 ---
 
-## Atributos Privados Detalhados
+## Private Attributes Detail
 
 ### appReq: IncomingMessage | null
 
-Referência para o IncomingMessage da requisição atual. Usado para:
-- Ler body em chunks
-- Acessar headers
-- Acessar URL e método
+Reference to the current request's IncomingMessage. Used to:
+- Read body in chunks
+- Access headers
+- Access URL and method
 
 ### appRes: ServerResponse | null
 
-Referência para o ServerResponse da requisição atual. Usado para:
-- Escrever headers
-- Escrever body
-- Finalizar resposta
+Reference to the current request's ServerResponse. Used to:
+- Write headers
+- Write body
+- Finalize response
 
 ### method: string
 
-Método HTTP da requisição. Valores possíveis:
+HTTP method of the request. Possible values:
 - `"GET"`
 - `"POST"`
 - `"PUT"`
 - `"PATCH"`
 - `"DELETE"`
-- `""` (padrão se não especificado)
+- `""` (default if not specified)
 
 ### path: string
 
-URL completo da requisição (path + query string):
+Full URL of the request (path + query string):
 - Ex: `/users/123?foo=bar&baz=qux`
-- O `Routes` irá separar path e query para match
+- `Routes` will separate path and query for matching
 
 ### dataBody: unknown
 
-Body da requisição parseado:
-- Se JSON: objeto
-- Se vazio: `null`
-- Se não-JSON: erro (lança exception)
+Parsed request body:
+- If JSON: object
+- If empty: `null`
+- If non-JSON: error (throws exception)
 
 ### port: number
 
-Porta onde o servidor escuta. Padrão: `8000`
+Port where server listens. Default: `8000`
 
 ### headers: IncomingMessage['headers']
 
-Headers da requisição:
+Request headers:
 ```typescript
 {
   host: 'localhost:8000',
   'user-agent': 'curl/7.68.0',
   'content-type': 'application/json',
-  // ... outros
+  // ... others
 }
 ```
 
 ### appName: string
 
-Nome da aplicação para logs. Padrão: `'App'`
+Application name for logs. Default: `'App'`
 
 ---
 
-## Padrões de Uso
+## Usage Patterns
 
-### Instanciação Direta
+### Direct Instantiation
 
 ```typescript
 import { SweetPotato } from './package/SweetPotato.mjs';
@@ -257,8 +258,8 @@ const app = new SweetPotato();
 
 app.get('/users', (ctx) => {
   ctx.headers;  // headers
-  ctx.params;   // null (sem parâmetros)
-  ctx.body;     // null (GET sem body)
+  ctx.params;   // null (no parameters)
+  ctx.body;     // null (GET without body)
   ctx.queries;  // query params
   
   app.finishRequest(200, { message: 'OK' });
@@ -267,7 +268,7 @@ app.get('/users', (ctx) => {
 app.listen(3000);
 ```
 
-### Usando Singleton (SweetPotatoApp)
+### Using Singleton (SweetPotatoApp)
 
 ```typescript
 import { SweetPotatoApp } from './package/SweetPotatoApp.mjs';
@@ -283,13 +284,13 @@ app.listen();
 
 ---
 
-## Erros e Tratamento
+## Errors and Handling
 
 ### [ERR_HTTP_HEADERS_SENT]
 
-**Causa**: Tentar escrever headers após já ter enviado resposta
+**Cause**: Trying to write headers after already sending response
 
-**Prevenção**: O `try-catch` em `finishRequest()` cobre isso:
+**Prevention**: The try-catch in `finishRequest()` covers this:
 
 ```typescript
 try {
@@ -305,9 +306,9 @@ try {
 
 ### RouteNotFoundException
 
-**Causa**: Nenhuma rota correspondente ao path + method
+**Cause**: No route matching path + method
 
-**Tratamento**:
+**Handling**:
 ```typescript
 if (error instanceof RouteNotFoundException) {
   return this.finishRequest(HttpStatusCode.NOT_FOUND, {
@@ -318,20 +319,20 @@ if (error instanceof RouteNotFoundException) {
 
 ### JSON Parse Error
 
-**Causa**: Body não é JSON válido
+**Cause**: Body is not valid JSON
 
-**Tratamento**: Lança exception que cai no catch geral → 500
+**Handling**: Throws exception that falls into general catch → 500
 
 ---
 
-## Resumo de Responsabilidades
+## Responsibility Summary
 
-| Responsabilidade | Métodos |
+| Responsibility | Methods |
 |-----------------|---------|
-| Servidor HTTP | `listen()`, `createServer()` |
-| Captura de dados | `defineGlobalAttributes()`, `defineBodyAttributes()` |
-| Roteamento | `handleRoute()`, `executeRequestCycle()` |
-| Resposta | `finishRequest()` |
+| HTTP Server | `listen()`, `createServer()` |
+| Data Capture | `defineGlobalAttributes()`, `defineBodyAttributes()` |
+| Routing | `handleRoute()`, `executeRequestCycle()` |
+| Response | `finishRequest()` |
 | Logs | Constructor, `listen()` callback |
 
-**Princípio SRP**: `SweetPotato` tem **uma única responsabilidade** - ser o ponto de entrada do servidor HTTP, delegando lógica de roteamento para `Routes`.
+**SRP Principle**: `SweetPotato` has **single responsibility** - to be the HTTP server entry point, delegating routing logic to `Routes`.

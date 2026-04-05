@@ -1,15 +1,15 @@
-# Tipos Base do Framework
+# Framework Base Types
 
-## Visão Geral
+## Overview
 
-O Potato Framework define dois tipos fundamentais que são usados em toda a engine:
+Potato Framework defines two fundamental types used throughout the engine:
 
-1. **HandlerContext** - O objeto passado para todos os handlers
-2. **RouteHandler** - O tipo de função que todos os handlers devem seguir
+1. **HandlerContext** - The object passed to all handlers
+2. **RouteHandler** - The function type all handlers must follow
 
 ## HandlerContext
 
-### Definição
+### Definition
 
 ```typescript
 import type { IncomingHttpHeaders } from 'node:http';
@@ -22,50 +22,50 @@ export interface HandlerContext {
 }
 ```
 
-### Propriedades
+### Properties
 
-| Propriedade | Tipo | Descrição |
+| Property | Type | Description |
 |-------------|------|-----------|
-| `body` | `any` | Body da requisição parseado como JSON (ou `null`) |
-| `params` | `Record<string, string> \| null` | Parâmetros da rota (ex: `:id`) |
-| `headers` | `IncomingHttpHeaders` | Headers da requisição |
+| `body` | `any` | Request body parsed as JSON (or `null`) |
+| `params` | `Record<string, string> \| null` | Route parameters (ex: `:id`) |
+| `headers` | `IncomingHttpHeaders` | Request headers |
 | `queries` | `Record<string, string> \| null` | Query parameters (ex: `?page=1`) |
 
-### Descrição Detalhada
+### Detailed Description
 
 #### body: any
 
-O corpo da requisição HTTP, parseado de JSON para objeto JavaScript.
+The HTTP request body, parsed from JSON to a JavaScript object.
 
-**Valores possíveis**:
-- `null` - Se não houver body ou body vazio
-- `object` - Se body for JSON válido
-- `array` - Se body for um JSON array
-- `string`, `number`, `boolean` - Se for um JSON primitivo
+**Possible values**:
+- `null` - If no body or empty body
+- `object` - If body is valid JSON
+- `array` - If body is a JSON array
+- `string`, `number`, `boolean` - If it's a JSON primitive
 
-**Exemplos**:
+**Examples**:
 ```typescript
-// GET /users (sem body)
+// GET /users (no body)
 ctx.body;  // null
 
-// POST /users com body {"name": "John"}
+// POST /users with body {"name": "John"}
 ctx.body;  // { name: "John" }
 
-// PUT /users com body [{"id": 1}, {"id": 2}]
+// PUT /users with body [{"id": 1}, {"id": 2}]
 ctx.body;  // [{ id: 1 }, { id: 2 }]
 ```
 
-**Nota**: O framework assume que o body é sempre JSON. Se não for, lançará erro.
+**Note**: The framework assumes the body is always JSON. If not, it will throw an error.
 
 ---
 
-#### params: Record<string, string> \| null
+#### params: Record<string, string> | null
 
-Parâmetros extraídos do path da requisição.
+Parameters extracted from the request path.
 
-**Formato**: Cada `:parametro` no path se torna uma key no objeto.
+**Format**: Each `:parameter` in the path becomes a key in the object.
 
-**Exemplos**:
+**Examples**:
 ```typescript
 // GET /users/123
 // Path: "/users/:id"
@@ -77,28 +77,28 @@ ctx.params;  // { userId: "456", postId: "789" }
 
 // GET /users
 // Path: "/users"
-ctx.params;  // null (ou {} dependendo da implementação)
+ctx.params;  // null (or {} depending on implementation)
 ```
 
-**Características**:
-- Todos os valores são strings (não há parsing para number)
-- Apenas letras minúsculas, dígitos, hífen e underscore são permitidos
-- Se não houver parâmetros: `null` (ou objeto vazio `{}`)
+**Characteristics**:
+- All values are strings (no parsing to number)
+- Only lowercase letters, digits, hyphen, and underscore are allowed
+- If no parameters: `null` (or empty object `{}`)
 
 ---
 
 #### headers: IncomingHttpHeaders
 
-Headers da requisição HTTP, conforme definido no Node.js `http` module.
+HTTP request headers, as defined in Node.js `http` module.
 
-**Definição do Node.js**:
+**Node.js Definition**:
 ```typescript
 type IncomingHttpHeaders = {
   [key: string]: string | string[] | undefined;
 };
 ```
 
-**Exemplos**:
+**Examples**:
 ```typescript
 // Request: GET /users HTTP/1.1
 // Host: localhost:8000
@@ -112,10 +112,10 @@ ctx.headers['content-type'];   // "application/json"
 ctx.headers['authorization'];  // "Bearer token123"
 ```
 
-**Características**:
-- Keys são lowercase pelo Node.js
-- Valores podem ser string ou string[] (para headers múltiplos)
-- Alguns headers comuns:
+**Characteristics**:
+- Keys are lowercase by Node.js
+- Values can be string or string[] (for multiple headers)
+- Some common headers:
   - `content-length`
   - `content-type`
   - `authorization`
@@ -124,13 +124,13 @@ ctx.headers['authorization'];  // "Bearer token123"
 
 ---
 
-#### queries: Record<string, string> \| null
+#### queries: Record<string, string> | null
 
-Query parameters da URL, parseados em objeto.
+URL query parameters, parsed into an object.
 
-**Formato**: `?key1=value1&key2=value2` → `{ key1: "value1", key2: "value2" }`
+**Format**: `?key1=value1&key2=value2` → `{ key1: "value1", key2: "value2" }`
 
-**Exemplos**:
+**Examples**:
 ```typescript
 // GET /users?page=1&limit=10
 ctx.queries;  // { page: "1", limit: "10" }
@@ -142,25 +142,25 @@ ctx.queries;  // { sort: "desc", order: "asc" }
 ctx.queries;  // null
 ```
 
-**Características**:
-- Todos os valores são strings
-- Parâmetros duplicados: último valor vence (current behavior)
-- Não há URL decoding automático (ex: `%20` não vira espaço)
-- Se não houver query: `null`
+**Characteristics**:
+- All values are strings
+- Duplicate parameters: last value wins (current behavior)
+- No automatic URL decoding (ex: `%20` doesn't become space)
+- If no query: `null`
 
 ---
 
 ## RouteHandler
 
-### Definição
+### Definition
 
 ```typescript
 export type RouteHandler = (ctx: HandlerContext) => void | Promise<void>;
 ```
 
-### Tipos de Handlers
+### Handler Types
 
-#### Handler Síncrono
+#### Synchronous Handler
 
 ```typescript
 const syncHandler: RouteHandler = (ctx) => {
@@ -168,20 +168,20 @@ const syncHandler: RouteHandler = (ctx) => {
   app.finishRequest(200, { data: 'ok' });
 };
 
-// Ou:
+// Or:
 function syncHandler(ctx: HandlerContext): void {
   // ...
 }
 ```
 
-**Características**:
-- Retorna `void` ou nada (implicit `undefined`)
-- Não usa `async`
-- Não precisa de `await`
+**Characteristics**:
+- Returns `void` or nothing (implicit `undefined`)
+- Does not use `async`
+- Does not need `await`
 
 ---
 
-#### Handler Assíncrono (Async Function)
+#### Asynchronous Handler (Async Function)
 
 ```typescript
 const asyncHandler: RouteHandler = async (ctx) => {
@@ -189,21 +189,21 @@ const asyncHandler: RouteHandler = async (ctx) => {
   app.finishRequest(200, { user });
 };
 
-// Ou:
+// Or:
 async function asyncHandler(ctx: HandlerContext): Promise<void> {
   // ...
 }
 ```
 
-**Características**:
-- Tem `async` keyword
-- Pode usar `await`
-- Retorna `Promise<void>`
-- Deve ser chamado com `await`
+**Characteristics**:
+- Has `async` keyword
+- Can use `await`
+- Returns `Promise<void>`
+- Must be called with `await`
 
 ---
 
-#### Handler que Retorna Promise Diretamente
+#### Handler Returning Promise Directly
 
 ```typescript
 const promiseHandler: RouteHandler = (ctx) => {
@@ -215,25 +215,25 @@ const promiseHandler: RouteHandler = (ctx) => {
   });
 };
 
-// Ou:
+// Or:
 function promiseHandler(ctx: HandlerContext): Promise<void> {
   return db.query();
 }
 ```
 
-**Características**:
-- Não tem `async`
-- Retorna explicitamente `Promise<void>`
-- Deve ser chamado com `await`
+**Characteristics**:
+- Does not have `async`
+- Explicitly returns `Promise<void>`
+- Must be called with `await`
 
 ---
 
-## Uso no Framework
+## Usage in Framework
 
-### Criação do HandlerContext
+### Creating HandlerContext
 
 ```typescript
-// Em Routes.executeRequestCycle()
+// In Routes.executeRequestCycle()
 
 const requestCycleObject: HandlerContext = Object.freeze({
   body,
@@ -243,43 +243,43 @@ const requestCycleObject: HandlerContext = Object.freeze({
 });
 ```
 
-**Importante**: `Object.freeze()` torna o contexto **imutável**.
+**Important**: `Object.freeze()` makes the context **immutable**.
 
 ### Handler Contract
 
-Cada handler deve:
+Each handler must:
 
-1. **Acessar dados** de `ctx`:
+1. **Access data** from `ctx`:
    ```typescript
    const userId = ctx.params?.id;
    const token = ctx.headers['authorization'];
    ```
 
-2. **Não mutar** o contexto (immutability):
+2. **Not mutate** the context (immutability):
    ```typescript
-   // ❌ NÃO FAZER:
+   // ❌ DON'T DO:
    ctx.params.id = 'new-value';  // Error (frozen)
    ```
 
-3. **Não chamar `next()`**:
-   - O framework executa handlers em sequência
-   - Não há mecanismo de `next()`
+3. **Not call `next()`**:
+   - Framework executes handlers in sequence
+   - There's no `next()` mechanism
 
-4. **Chamar `app.finishRequest()`** no final:
+4. **Call `app.finishRequest()`** at the end:
    ```typescript
    app.finishRequest(statusCode, data);
    ```
 
-### Ordem de Execução
+### Execution Order
 
 ```typescript
 // Registration
 app.get('/users', middleware1, middleware2, handler);
 
 // Execution order:
-// 1. middleware1(ctx) - não chama finishRequest
-// 2. middleware2(ctx) - não chama finishRequest
-// 3. handler(ctx) - chama finishRequest
+// 1. middleware1(ctx) - does not call finishRequest
+// 2. middleware2(ctx) - does not call finishRequest
+// 3. handler(ctx) - calls finishRequest
 ```
 
 ### Middleware Pattern
@@ -293,12 +293,12 @@ const authMiddleware: RouteHandler = async (ctx) => {
     return;  // Stop chain
   }
   
-  // Continue chain - não chama finishRequest
+  // Continue chain - does not call finishRequest
 };
 
 const logMiddleware: RouteHandler = (ctx) => {
   console.log(`${ctx.params} accessed`);
-  // Continue chain - não chama finishRequest
+  // Continue chain - does not call finishRequest
 };
 
 const getHandler: RouteHandler = (ctx) => {
@@ -308,21 +308,21 @@ const getHandler: RouteHandler = (ctx) => {
 
 ---
 
-## Comparação com Outros Frameworks
+## Comparison with Other Frameworks
 
 ### Express.js
 
 ```typescript
 // Express
 app.get('/users', (req, res, next) => {
-  // req, res são objetos separados
-  // next() é chamado para passar para próximo middleware
+  // req, res are separate objects
+  // next() is called to pass to next middleware
 });
 
 // Potato
 app.get('/users', (ctx) => {
-  // ctx é único objeto com req e res escondidos
-  // não há next() - handlers são executados em sequência
+  // ctx is single object with hidden req and res
+  // no next() - handlers execute in sequence
 });
 ```
 
@@ -331,20 +331,20 @@ app.get('/users', (ctx) => {
 ```typescript
 // Fastify
 app.get('/users', async (request, reply) => {
-  // request e reply separados
+  // request and reply are separate
 });
 
 // Potato
 app.get('/users', async (ctx) => {
-  // único contexto
+  // single context
 });
 ```
 
 ---
 
-## Padrões de Uso
+## Usage Patterns
 
-### Acessando Todos os Dados
+### Accessing All Data
 
 ```typescript
 const handler: RouteHandler = (ctx) => {
@@ -373,7 +373,7 @@ const handler: RouteHandler = (ctx) => {
 };
 ```
 
-### Middleware de Autenticação
+### Authentication Middleware
 
 ```typescript
 const authMiddleware: RouteHandler = async (ctx) => {
@@ -384,11 +384,11 @@ const authMiddleware: RouteHandler = async (ctx) => {
     return;
   }
   
-  // Continue - não chama finishRequest
+  // Continue - does not call finishRequest
 };
 ```
 
-### Middleware de Logging
+### Logging Middleware
 
 ```typescript
 const logMiddleware: RouteHandler = (ctx) => {
@@ -397,17 +397,17 @@ const logMiddleware: RouteHandler = (ctx) => {
   
   console.log(`[${timestamp}] ${method} - ${ctx.params}`);
   
-  // Continue - não chama finishRequest
+  // Continue - does not call finishRequest
 };
 ```
 
-### Handler Final
+### Final Handler
 
 ```typescript
 const getHandler: RouteHandler = (ctx) => {
   const userId = ctx.params?.id;
   
-  // Simples sync handler
+  // Simple sync handler
   app.finishRequest(200, { id: userId });
 };
 
@@ -422,7 +422,7 @@ const postHandler: RouteHandler = async (ctx) => {
 
 ---
 
-## Tipos Complementares
+## Complementary Types
 
 ### HttpMethod
 
@@ -438,7 +438,7 @@ export const HttpMethod = {
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 ```
 
-**Uso**:
+**Usage**:
 ```typescript
 const method: HttpMethod = HttpMethod.GET;  // "GET"
 ```
@@ -456,43 +456,43 @@ export const HttpStatusCode = {
 export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode];
 ```
 
-**Uso**:
+**Usage**:
 ```typescript
 app.finishRequest(HttpStatusCode.SUCCESS, data);
 ```
 
 ---
 
-## Resumo
+## Summary
 
-| Tipo | Descrição |
+| Type | Description |
 |------|-----------|
-| **HandlerContext** | Objeto imutável passado para handlers com body, params, headers, queries |
-| **RouteHandler** | Tipo de função `(ctx: HandlerContext) => void \| Promise<void>` |
+| **HandlerContext** | Immutable object passed to handlers with body, params, headers, queries |
+| **RouteHandler** | Function type `(ctx: HandlerContext) => void \| Promise<void>` |
 
 ### HandlerContext
 
-| Propriedade | Tipo | Opcional | Descrição |
+| Property | Type | Optional | Description |
 |-------------|------|----------|-----------|
-| `body` | `any` | Sim | Body parseado (JSON) |
-| `params` | `Record<string, string> \| null` | Sim | Parâmetros da rota |
-| `headers` | `IncomingHttpHeaders` | Não | Headers HTTP |
-| `queries` | `Record<string, string> \| null` | Sim | Query parameters |
+| `body` | `any` | Yes | Parsed body (JSON) |
+| `params` | `Record<string, string> \| null` | Yes | Route parameters |
+| `headers` | `IncomingHttpHeaders` | No | HTTP headers |
+| `queries` | `Record<string, string> \| null` | Yes | Query parameters |
 
 ### RouteHandler
 
-| Variação | Sintaxe | Uso |
+| Variation | Syntax | Usage |
 |----------|---------|-----|
-| **Síncrono** | `(ctx) => { ... }` | Sem `async` |
-| **Async** | `async (ctx) => { ... }` | Com `await` |
-| **Promise** | `(ctx) => Promise<void>` | Retorna Promise |
+| **Synchronous** | `(ctx) => { ... }` | Without `async` |
+| **Async** | `async (ctx) => { ... }` | With `await` |
+| **Promise** | `(ctx) => Promise<void>` | Returns Promise |
 
-### Contrato de Handler
+### Handler Contract
 
-1. Recebe `HandlerContext` como único parâmetro
-2. Não deve mutar o contexto (imutável)
-3. Não chama `next()` - framework gerencia sequência
-4. Deve chamar `app.finishRequest(statusCode, data)` em algum momento (ou deixar para outro handler)
+1. Receives `HandlerContext` as single parameter
+2. Must not mutate the context (immutable)
+3. Does not call `next()` - framework manages sequence
+4. Must call `app.finishRequest(statusCode, data)` at some point (or let another handler do it)
 
 ### Immutability
 
@@ -505,12 +505,12 @@ const requestCycleObject: HandlerContext = Object.freeze({
 });
 ```
 
-**Garantia**: Handlers não podem modificar o contexto.
+**Guarantee**: Handlers cannot modify the context.
 
 ### Type Safety
 
 ```typescript
-// Type guard para detectar async handlers
+// Type guard to detect async handlers
 export function isPromise(fn: unknown): fn is Promise<unknown> {
   if (
     (typeof fn === 'function' && fn.constructor.name === 'AsyncFunction') ||
@@ -522,7 +522,7 @@ export function isPromise(fn: unknown): fn is Promise<unknown> {
 }
 ```
 
-**Uso**:
+**Usage**:
 ```typescript
 if (!isPromise(actualHandler)) {
   actualHandler(data);  // Sync

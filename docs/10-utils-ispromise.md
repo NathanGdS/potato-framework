@@ -1,8 +1,8 @@
-# isPromise - Detecção de Funções Assíncronas
+# isPromise - Async Function Detection
 
-## Visão Geral
+## Overview
 
-`isPromise` é um utilitário que **detecta se uma função é assíncrona**. Ele é usado pelo `RequestCycle` para decidir se deve `await` a execução de um handler ou chamar síncronamente.
+`isPromise` is a utility that **detects if a function is asynchronous**. It is used by `RequestCycle` to decide whether to `await` a handler's execution or call it synchronously.
 
 ```typescript
 export function isPromise(fn: unknown): fn is Promise<unknown> {
@@ -17,28 +17,28 @@ export function isPromise(fn: unknown): fn is Promise<unknown> {
 }
 ```
 
-## Propósito
+## Purpose
 
-No contexto do `RequestCycle`, handlers podem ser:
-- **Síncronos**: `(ctx) => { ... }`
-- **Assíncronos**: `async (ctx) => { ... }` ou `(ctx) => Promise<void>`
+In the context of `RequestCycle`, handlers can be:
+- **Synchronous**: `(ctx) => { ... }`
+- **Asynchronous**: `async (ctx) => { ... }` or `(ctx) => Promise<void>`
 
-`isPromise()` detecta qual é e executa adequadamente:
+`isPromise()` detects which one and executes appropriately:
 
 ```typescript
 async executeRequestCycle(data: HandlerContext): Promise<void> {
   for (let i = 0; i < this.handlers.length; i++) {
     const actualHandler = this.handlers[i];
     if (!isPromise(actualHandler)) {
-      actualHandler(data);  // Síncrono
+      actualHandler(data);  // Synchronous
     } else {
-      await actualHandler(data);  // Assíncrono
+      await actualHandler(data);  // Asynchronous
     }
   }
 }
 ```
 
-## Lógica de Detecção
+## Detection Logic
 
 ### Check 1: Async Function
 
@@ -46,18 +46,18 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
 typeof fn === 'function' && fn.constructor.name === 'AsyncFunction'
 ```
 
-**Como funciona**:
-- `typeof fn === 'function'`: Verifica que `fn` é uma função
-- `fn.constructor.name === 'AsyncFunction'`: Verifica que a função foi criada com `async`
+**How it works**:
+- `typeof fn === 'function'`: Verifies that `fn` is a function
+- `fn.constructor.name === 'AsyncFunction'`: Verifies that the function was created with `async`
 
-**Exemplos que passam**:
+**Examples that pass**:
 ```javascript
 async function handler(ctx) {}         // ✅ AsyncFunction
 const handler = async (ctx) => {};     // ✅ AsyncFunction
 const handler = async function(ctx) {}; // ✅ AsyncFunction
 ```
 
-**Exemplos que falham**:
+**Examples that fail**:
 ```javascript
 function handler(ctx) {}               // ❌ Function (not AsyncFunction)
 const handler = (ctx) => {};           // ❌ ArrowFunction
@@ -70,17 +70,17 @@ const handler = (ctx) => { return Promise.resolve() }; // ❌ ArrowFunction
 fn instanceof Promise
 ```
 
-**Como funciona**:
-- Verifica se `fn` é uma instância de `Promise`
+**How it works**:
+- Verifies if `fn` is an instance of `Promise`
 
-**Exemplos que passam**:
+**Examples that pass**:
 ```javascript
 const handler = () => new Promise(resolve => resolve());  // ✅ Promise
 const handler = () => Promise.resolve();                     // ✅ Promise
-const handler = async () => {};                             // ✅ AsyncFunction (já passou no check 1)
+const handler = async () => {};                             // ✅ AsyncFunction (already passed check 1)
 ```
 
-**Exemplos que falham**:
+**Examples that fail**:
 ```javascript
 function handler(ctx) {}                                    // ❌ not Promise
 const handler = () => {};                                   // ❌ not Promise
@@ -97,7 +97,7 @@ if (
 }
 ```
 
-**Tabela de Truth**:
+**Truth Table**:
 
 | Handler | Check 1 | Check 2 | Result |
 |---------|---------|---------|--------|
@@ -108,33 +108,33 @@ if (
 | `const f = () => Promise.resolve()` | ❌ | ✅ | ✅ |
 | `const f = () => new Promise(r => r())` | ❌ | ✅ | ✅ |
 
-## Exemplos de Uso
+## Usage Examples
 
-### Handler Síncrono
+### Synchronous Handler
 
 ```typescript
 const syncHandler = (ctx) => {
-  console.log('Síncrono');
-  // Não retorna nada ou retorna void
+  console.log('Synchronous');
+  // Returns nothing or returns void
 };
 
-isPromise(syncHandler);  // false → execute sem await
+isPromise(syncHandler);  // false → execute without await
 // Output: Sync handler
 ```
 
-### Handler Assíncrono (Async Function)
+### Asynchronous Handler (Async Function)
 
 ```typescript
 const asyncHandler = async (ctx) => {
   await db.query('SELECT 1');
-  console.log('Assíncrono');
+  console.log('Asynchronous');
 };
 
-isPromise(asyncHandler);  // true → execute com await
+isPromise(asyncHandler);  // true → execute with await
 // Output: Async handler (after db query)
 ```
 
-### Handler Assíncrono (Promise Return)
+### Asynchronous Handler (Promise Return)
 
 ```typescript
 const promiseHandler = (ctx) => {
@@ -146,33 +146,33 @@ const promiseHandler = (ctx) => {
   });
 };
 
-isPromise(promiseHandler);  // true → execute com await
+isPromise(promiseHandler);  // true → execute with await
 // Output: Promise resolved (after 100ms)
 ```
 
-### Handler que Retorna Promise Diretamente
+### Handler that Returns Promise Directly
 
 ```typescript
 const directPromiseHandler = (ctx) => {
-  return Promise.resolve();  // Retorna Promise
+  return Promise.resolve();  // Returns Promise
 };
 
-isPromise(directPromiseHandler);  // true → execute com await
+isPromise(directPromiseHandler);  // true → execute with await
 ```
 
-### Handler Síncrono que Retorna Promise
+### Synchronous Handler that Returns Promise
 
 ```typescript
 const syncHandler = (ctx) => {
-  return Promise.resolve();  // Retorna Promise, mas função não é async
+  return Promise.resolve();  // Returns Promise, but function is not async
 };
 
-isPromise(syncHandler);  // true → execute com await
+isPromise(syncHandler);  // true → execute with await
 ```
 
-## Integração com RequestCycle
+## Integration with RequestCycle
 
-### ExecuteRequestCycle
+### executeRequestCycle
 
 ```typescript
 async executeRequestCycle(data: HandlerContext): Promise<void> {
@@ -180,38 +180,38 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
     const actualHandler = this.handlers[i];
     
     if (!isPromise(actualHandler)) {
-      // Síncrono: chama diretamente
+      // Synchronous: call directly
       actualHandler(data);
     } else {
-      // Assíncrono: espera com await
+      // Asynchronous: wait with await
       await actualHandler(data);
     }
   }
 }
 ```
 
-### Fluxo Completo
+### Complete Flow
 
 ```
 RequestCycle.execute()
   │
   ├─→ Handler 1 (sync)
   │   ├─→ isPromise() → false
-  │   ├─→ call(ctx)       (sem await)
+  │   ├─→ call(ctx)       (no await)
   │   └─→ continue loop
   │
   ├─→ Handler 2 (async)
   │   ├─→ isPromise() → true
-  │   ├─→ await call(ctx) (espera)
+  │   ├─→ await call(ctx) (waits)
   │   └─→ continue loop
   │
   └─→ Handler 3 (promise)
       ├─→ isPromise() → true
-      ├─→ await call(ctx) (espera)
+      ├─→ await call(ctx) (waits)
       └─→ done
 ```
 
-## Tipos de Handlers Detectados
+## Detected Handler Types
 
 ### 1. Async Function Declaration
 
@@ -235,7 +235,7 @@ isPromise(myHandler);  // true
 // constructor.name: "AsyncFunction"
 ```
 
-### 3. Arrow Function Retornando Promise
+### 3. Arrow Function Returning Promise
 
 ```typescript
 const myHandler = (ctx) => {
@@ -248,7 +248,7 @@ isPromise(myHandler);  // true
 // instanceof Promise: true
 ```
 
-### 4. Arrow Function Retornando Promise.resolve()
+### 4. Arrow Function Returning Promise.resolve()
 
 ```typescript
 const myHandler = (ctx) => {
@@ -259,7 +259,7 @@ isPromise(myHandler);  // true
 // instanceof Promise: true
 ```
 
-### 5. Function Síncrona
+### 5. Synchronous Function
 
 ```typescript
 function myHandler(ctx) {
@@ -270,7 +270,7 @@ isPromise(myHandler);  // false
 // constructor.name: "Function"
 ```
 
-### 6. Arrow Function Síncrona
+### 6. Synchronous Arrow Function
 
 ```typescript
 const myHandler = (ctx) => {
@@ -281,7 +281,7 @@ isPromise(myHandler);  // false
 // constructor.name: "ArrowFunction"
 ```
 
-### 7. arrow Function Síncrona que Retorna void
+### 7. Synchronous Arrow Function Returning void
 
 ```typescript
 const myHandler = (ctx) => {
@@ -292,7 +292,7 @@ const myHandler = (ctx) => {
 isPromise(myHandler);  // false
 ```
 
-### 8. Arrow Function Síncrona sem return
+### 8. Synchronous Arrow Function without return
 
 ```typescript
 const myHandler = (ctx) => {
@@ -303,206 +303,206 @@ const myHandler = (ctx) => {
 isPromise(myHandler);  // false
 ```
 
-## Casos Edge
+## Edge Cases
 
-### Edge Case 1: Arrow Function que Retorna Promise
+### Edge Case 1: Arrow Function Returning Promise
 
 ```typescript
 const handler = (ctx) => Promise.resolve();  // Explicit return
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 2: Arrow Function Async
+### Edge Case 2: Async Arrow Function
 
 ```typescript
 const handler = async (ctx) => {};  // Async arrow
 isPromise(handler);  // true (AsyncFunction)
 ```
 
-### Edge Case 3: Arrow Function que Retorna new Promise
+### Edge Case 3: Arrow Function Returning new Promise
 
 ```typescript
 const handler = (ctx) => new Promise(r => setTimeout(r, 100));
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 4: Arrow Function que Retorna Promise.then()
+### Edge Case 4: Arrow Function Returning Promise.then()
 
 ```typescript
 const handler = (ctx) => Promise.resolve().then(() => {});
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 5: Arrow Function que Retorna Promise.catch()
+### Edge Case 5: Arrow Function Returning Promise.catch()
 
 ```typescript
 const handler = (ctx) => Promise.resolve().catch(() => {});
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 6: Arrow Function que Retorna Promise.all()
+### Edge Case 6: Arrow Function Returning Promise.all()
 
 ```typescript
 const handler = (ctx) => Promise.all([Promise.resolve()]);
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 7: Arrow Function que Retorna Promise.race()
+### Edge Case 7: Arrow Function Returning Promise.race()
 
 ```typescript
 const handler = (ctx) => Promise.race([Promise.resolve()]);
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 8: Arrow Function que Retorna Promise.reject()
+### Edge Case 8: Arrow Function Returning Promise.reject()
 
 ```typescript
 const handler = (ctx) => Promise.reject();
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 9: Arrow Function que Retorna Promise.resolve() com valor
+### Edge Case 9: Arrow Function Returning Promise.resolve() with value
 
 ```typescript
 const handler = (ctx) => Promise.resolve('value');
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-### Edge Case 10: Arrow Function que Retorna Promise.resolve() com then()
+### Edge Case 10: Arrow Function Returning Promise.resolve() with then()
 
 ```typescript
 const handler = (ctx) => Promise.resolve().then(() => 'value');
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-## Problemas Conhecidos
+## Known Problems
 
-### Problem 1: Arrow Function Async vs Arrow Function Síncrona que Retorna Promise
+### Problem 1: Async Arrow Function vs Synchronous Arrow Function Returning Promise
 
 ```typescript
 const asyncHandler = async (ctx) => {};          // isPromise: true (AsyncFunction)
 const promiseHandler = (ctx) => Promise.resolve(); // isPromise: true (Promise)
 
-// Ambos são detectados como async, mas:
+// Both are detected as async, but:
 // - asyncHandler: function constructor.name === "AsyncFunction"
 // - promiseHandler: instanceof Promise === true
 ```
 
-**Resultado**: Ambos são executados com `await`, que é o comportamento correto.
+**Result**: Both are executed with `await`, which is the correct behavior.
 
-### Problem 2: Arrow Function que Retorna Não-Promise
+### Problem 2: Arrow Function Returning Non-Promise
 
 ```typescript
 const handler = (ctx) => { return 'value'; };  // isPromise: false
-isPromise(handler);  // false (retorna string, não Promise)
+isPromise(handler);  // false (returns string, not Promise)
 ```
 
-**Resultado**: Executado sem `await`, correto.
+**Result**: Executed without `await`, correct.
 
-### Problem 3: Arrow Function que Não Retorna Nada
+### Problem 3: Arrow Function Returning Nothing
 
 ```typescript
 const handler = (ctx) => {};  // isPromise: false
-isPromise(handler);  // false (retorna undefined, não Promise)
+isPromise(handler);  // false (returns undefined, not Promise)
 ```
 
-**Resultado**: Executado sem `await`, correto.
+**Result**: Executed without `await`, correct.
 
-### Problem 4: Arrow Function que Retorna undefined explicitamente
+### Problem 4: Arrow Function Returning undefined explicitly
 
 ```typescript
 const handler = (ctx) => { return undefined; };  // isPromise: false
 isPromise(handler);  // false
 ```
 
-**Resultado**: Executado sem `await`, correto.
+**Result**: Executed without `await`, correct.
 
-### Problem 5: Arrow Function que Retorna Promise com then
+### Problem 5: Arrow Function Returning Promise with then
 
 ```typescript
 const handler = (ctx) => Promise.resolve().then(() => {});
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
-### Problem 6: Arrow Function que Retorna Promise com catch
+### Problem 6: Arrow Function Returning Promise with catch
 
 ```typescript
 const handler = (ctx) => Promise.resolve().catch(() => {});
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
-### Problem 7: Arrow Function que Retorna Promise com finally
+### Problem 7: Arrow Function Returning Promise with finally
 
 ```typescript
 const handler = (ctx) => Promise.resolve().finally(() => {});
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
-### Problem 8: Arrow Function que Retorna Promise com race
+### Problem 8: Arrow Function Returning Promise with race
 
 ```typescript
 const handler = (ctx) => Promise.race([Promise.resolve()]);
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
-### Problem 9: Arrow Function que Retorna Promise com all
+### Problem 9: Arrow Function Returning Promise with all
 
 ```typescript
 const handler = (ctx) => Promise.all([Promise.resolve()]);
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
-### Problem 10: Arrow Function que Retorna Promise com any
+### Problem 10: Arrow Function Returning Promise with any
 
 ```typescript
 const handler = (ctx) => Promise.any([Promise.resolve()]);
 isPromise(handler);  // true (instanceof Promise)
 ```
 
-**Resultado**: Executado com `await`, correto.
+**Result**: Executed with `await`, correct.
 
 ## Performance Considerations
 
-### Complexidade
+### Complexity
 
-- **Time**: O(1) - verificações diretas
-- **Space**: O(1) - nenhuma estrutura de dados adicional
+- **Time**: O(1) - direct checks
+- **Space**: O(1) - no additional data structures
 
-### Operações
+### Operations
 
 1. `typeof fn === 'function'`: O(1)
 2. `fn.constructor.name === 'AsyncFunction'`: O(1)
 3. `fn instanceof Promise`: O(1)
 
-### Otimização
+### Optimization
 
-A implementação atual já é **ótima**:
-- Short-circuit com `||` evita segundo check se primeiro for true
-- Nenhuma iteração ou criação de estrutura de dados
-- Verificações diretas de tipo
+The current implementation is **optimal**:
+- Short-circuit with `||` avoids second check if first is true
+- No iteration or data structure creation
+- Direct type checks
 
-### Comparação com Alternativas
+### Comparison with Alternatives
 
-**Alternativa 1: Using then() check**
+**Alternative 1: Using then() check**
 ```typescript
 function isPromise(fn: unknown): boolean {
   return fn != null && typeof fn.then === 'function';
 }
 ```
 
-**Problema**: Qualquer objeto com método `then` seria considerado Promise (duck typing).
+**Problem**: Any object with `then` method would be considered a Promise (duck typing).
 
-**Alternativa 2: Using async/await detection**
+**Alternative 2: Using async/await detection**
 ```typescript
 async function isPromise(fn: unknown): Promise<boolean> {
   try {
@@ -514,13 +514,13 @@ async function isPromise(fn: unknown): Promise<boolean> {
 }
 ```
 
-**Problema**: Requires `await`, slower, harder to use.
+**Problem**: Requires `await`, slower, harder to use.
 
-**Conclusão**: A implementação atual é a **mais performática e correta**.
+**Conclusion**: Current implementation is **the most performant and correct**.
 
-## Uso no RequestCycle
+## Usage in RequestCycle
 
-### ExecuteRequestCycle Implementation
+### executeRequestCycle Implementation
 
 ```typescript
 export class RequestCycle {
@@ -530,11 +530,11 @@ export class RequestCycle {
     for (let i = 0; i < this.handlers.length; i++) {
       const actualHandler = this.handlers[i];
       
-      // Detecta e executa adequadamente
+      // Detect and execute appropriately
       if (!isPromise(actualHandler)) {
-        actualHandler(data);  // Síncrono
+        actualHandler(data);  // Synchronous
       } else {
-        await actualHandler(data);  // Assíncrono
+        await actualHandler(data);  // Asynchronous
       }
     }
   }
@@ -554,18 +554,18 @@ interface HandlerContext {
 type RouteHandler = (ctx: HandlerContext) => void | Promise<void>;
 ```
 
-**Handlers podem**:
-- Síncronos: `(ctx) => { ... }` → `void`
-- Assíncronos: `async (ctx) => { ... }` → `Promise<void>`
+**Handlers can be**:
+- Synchronous: `(ctx) => { ... }` → `void`
+- Asynchronous: `async (ctx) => { ... }` → `Promise<void>`
 - Promise: `(ctx) => Promise<void>` → `Promise<void>`
 
-**`isPromise()` detecta todos os casos**.
+**`isPromise()` detects all cases**.
 
-## Tipos e Type Guard
+## Types and Type Guard
 
 ### Type Guard
 
-A assinatura `fn is Promise<unknown>` torna `isPromise()` um **type guard**:
+The signature `fn is Promise<unknown>` makes `isPromise()` a **type guard**:
 
 ```typescript
 async executeRequestCycle(data: HandlerContext): Promise<void> {
@@ -583,9 +583,9 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
 }
 ```
 
-**Type narrowing**: TypeScript sabe o tipo de `actualHandler` dentro de cada branch.
+**Type narrowing**: TypeScript knows the type of `actualHandler` inside each branch.
 
-## Alternativas de Implementação
+## Implementation Alternatives
 
 ### Alternative 1: Constructor Name Only
 
@@ -595,7 +595,7 @@ export function isPromise(fn: unknown): fn is Promise<unknown> {
 }
 ```
 
-**Problema**: Não detecta arrow functions que retornam Promise diretamente.
+**Problem**: Does not detect arrow functions that return Promise directly.
 
 ### Alternative 2: Instanceof Only
 
@@ -605,7 +605,7 @@ export function isPromise(fn: unknown): fn is Promise<unknown> {
 }
 ```
 
-**Problema**: Não detecta async functions (a função em si não é Promise, mas retorna uma).
+**Problem**: Does not detect async functions (the function itself is not a Promise, but returns one).
 
 ### Alternative 3: Using then()
 
@@ -615,7 +615,7 @@ export function isPromise(fn: unknown): boolean {
 }
 ```
 
-**Problema**: Qualquer objeto com `then` é considerado Promise (duck typing).
+**Problem**: Any object with `then` is considered Promise (duck typing).
 
 ### Alternative 4: Check both async and Promise
 
@@ -632,62 +632,62 @@ export function isPromise(fn: unknown): boolean {
 }
 ```
 
-**Conclusão**: A implementação atual é a **melhor combinação de performance e corretude**.
+**Conclusion**: Current implementation is **the best combination of performance and correctness**.
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Responsabilidade** | Detectar se função é async |
-| **Input** | `unknown` (qualquer valor) |
+| Aspect | Implementation |
+|--------|---------------|
+| **Responsibility** | Detect if function is async |
+| **Input** | `unknown` (any value) |
 | **Output** | `boolean` |
 | **Type Guard** | `fn is Promise<unknown>` |
-| **Detecção** | `AsyncFunction` constructor name OR `instanceof Promise` |
+| **Detection** | `AsyncFunction` constructor name OR `instanceof Promise` |
 
-### Contrato de Retorno
+### Return Contract
 
-| Handler | isPromise() | Execução |
+| Handler | isPromise() | Execution |
 |---------|-------------|----------|
-| `function f(ctx) {}` | `false` | Síncrona |
+| `function f(ctx) {}` | `false` | Synchronous |
 | `async function f(ctx) {}` | `true` | `await` |
-| `const f = () => {}` | `false` | Síncrona |
+| `const f = () => {}` | `false` | Synchronous |
 | `const f = async () => {}` | `true` | `await` |
 | `const f = () => Promise.resolve()` | `true` | `await` |
 | `const f = () => new Promise(...)` | `true` | `await` |
 
 ### Design Decisions
 
-1. **Dois checks separados**: `AsyncFunction` AND `Promise` são different things
-2. **Short-circuit com `||`**: Se primeiro check for true, não executa segundo
+1. **Two separate checks**: `AsyncFunction` AND `Promise` are different things
+2. **Short-circuit with `||`**: If first check is true, doesn't execute second
 3. **Type guard**: Return type `fn is Promise<unknown>`
 
-### Vantagens
+### Advantages
 
-- **Rápido**: O(1) verificações
-- **Simples**: Lógica direta
-- **Correto**: Detecta todos os casos válidos
+- **Fast**: O(1) checks
+- **Simple**: Direct logic
+- **Correct**: Detects all valid cases
 
-### Limitações
+### Limitations
 
-- **Não diferencia**: `async function` vs `() => Promise` (mas ambos devem usar `await`)
-- **Sem validação de parâmetros**: Aceita qualquer `unknown`
-- **Type guard only**: não tem overload para não-function inputs
+- **Does not differentiate**: `async function` vs `() => Promise` (but both should use `await`)
+- **No parameter validation**: Accepts any `unknown`
+- **Type guard only**: no overload for non-function inputs
 
-### Casos de Uso no Framework
+### Usage in Framework
 
-1. **RequestCycle.executeRequestCycle()**: Decide `await` ou call direto
-2. **Middleware detection**: Handlers podem ser mixed sync/async
-3. **Testes**: Verificar comportamento async vs sync
+1. **RequestCycle.executeRequestCycle()**: Decides `await` or direct call
+2. **Middleware detection**: Handlers can be mixed sync/async
+3. **Tests**: Verify async vs sync behavior
 
-### Vantagem no Contexto
+### Advantage in Context
 
-**Permite mix de handlers**:
+**Allows mix of handlers**:
 ```typescript
 app.get('/users', 
-  syncMiddleware,        // Síncrono - executa sem await
-  async dbMiddleware,    // Assíncrono - executa com await
-  syncHandler            // Síncrono - executa sem await
+  syncMiddleware,        // Synchronous - executes without await
+  async dbMiddleware,   // Asynchronous - executes with await
+  syncHandler            // Synchronous - executes without await
 );
 ```
 
-**Cada handler é executado com a semântica correta**.
+**Each handler is executed with the correct semantics**.

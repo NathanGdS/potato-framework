@@ -1,8 +1,8 @@
-# buildRoutePath - Compilação de Rotas com Regex
+# buildRoutePath - Route Compilation with Regex
 
-## Visão Geral
+## Overview
 
-`buildRoutePath` é um utilitário que **compila uma string de rota em uma expressão regular**. Ele permite definir rotas com parâmetros nomeados (ex: `:id`) que são convertidos em regex named groups.
+`buildRoutePath` is a utility that **compiles a route string into a regular expression**. It allows defining routes with named parameters (ex: `:id`) that are converted into regex named groups.
 
 ```typescript
 export function buildRoutePath(path: string): RegExp {
@@ -15,21 +15,21 @@ export function buildRoutePath(path: string): RegExp {
 }
 ```
 
-## Lógica de Compilação
+## Compilation Logic
 
-### Passo a Passo
+### Step by Step
 
-1. **Identificar parâmetros de rota**:
+1. **Identify route parameters**:
    ```javascript
-   /:([a-zA-Z]+)/g  // Regex para :parametro
+   /:([a-zA-Z]+)/g  // Regex for :parameter
    ```
 
-2. **Substituir por regex named group**:
+2. **Replace with named group regex**:
    ```javascript
    path.replaceAll(/:([a-zA-Z]+)/g, '(?<$1>[a-z0-9\\-_]+)')
    ```
 
-3. **Adicionar suporte para query string**:
+3. **Add query string support**:
    ```javascript
    new RegExp(`^${params}(?<query>\\?(.*))?$`)
    ```
@@ -39,33 +39,33 @@ export function buildRoutePath(path: string): RegExp {
 ```regex
 (?<id>[a-z0-9\\-_]+)
  │   │         │
- │   │         └─ Content: letras minúsculas, dígitos, hífen, underscore
- │   └─────────── Name: "id" (captação nomeada)
+ │   │         └─ Content: lowercase letters, digits, hyphen, underscore
+ │   └─────────── Name: "id" (named capture)
  └─────────────── Pattern: capture group named "id"
 ```
 
-## Exemplos de Compilação
+## Compilation Examples
 
-### Exemplo 1: Rota Simples
+### Example 1: Simple Route
 
 **Input**:
 ```typescript
 buildRoutePath("/users")
 ```
 
-**Passo 1** - Identificar parâmetros:
-- `/users` não tem `:`, então não há substituição
+**Step 1** - Identify parameters:
+- `/users` has no `:`, so no replacement
 - `params = "/users"`
 
-**Passo 2** - Adicionar query support:
+**Step 2** - Add query support:
 - `new RegExp(`^/users(?<query>\\?(.*))?$`)`
 
-**Resultante**:
+**Result**:
 ```javascript
 /^\/users(?<query>\?.*)?$/
 ```
 
-**Testes**:
+**Tests**:
 | Path | Match | Groups |
 |------|-------|--------|
 | `/users` | ✅ | `{ query: undefined }` |
@@ -73,26 +73,26 @@ buildRoutePath("/users")
 
 ---
 
-### Exemplo 2: Rota com Parâmetro
+### Example 2: Route with Parameter
 
 **Input**:
 ```typescript
 buildRoutePath("/users/:id")
 ```
 
-**Passo 1** - Identificar parâmetros:
+**Step 1** - Identify parameters:
 - `:id` → `(?<id>[a-z0-9\\-_]+)`
 - `params = "/users/(?<id>[a-z0-9\\-_]+)"`
 
-**Passo 2** - Adicionar query support:
+**Step 2** - Add query support:
 - `new RegExp(`^/users/(?<id>[a-z0-9\\-_]+)(?<query>\\?.*)?$`)`
 
-**Resultante**:
+**Result**:
 ```javascript
 /^\/users\/(?<id>[a-z0-9\-_]+)(?<query>\?.*)?$/
 ```
 
-**Testes**:
+**Tests**:
 | Path | Match | Groups |
 |------|-------|--------|
 | `/users/123` | ✅ | `{ id: "123", query: undefined }` |
@@ -101,29 +101,29 @@ buildRoutePath("/users/:id")
 | `/users/` | ❌ | - |
 | `/users/123/extra` | ❌ | - |
 
-**Regras de Validação**:
-- Apenas `a-z`, `0-9`, `-`, `_` são permitidos
-- Números são permitidos no parâmetro
+**Validation Rules**:
+- Only `a-z`, `0-9`, `-`, `_` are allowed
+- Numbers are allowed in parameter
 
 ---
 
-### Exemplo 3: Rota com Múltiplos Parâmetros
+### Example 3: Route with Multiple Parameters
 
 **Input**:
 ```typescript
 buildRoutePath("/users/:userId/posts/:postId")
 ```
 
-**Compilação**:
+**Compilation**:
 - `:userId` → `(?<userId>[a-z0-9\\-_]+)`
 - `:postId` → `(?<postId>[a-z0-9\\-_]+)`
 
-**Resultante**:
+**Result**:
 ```javascript
 /^\/users\/(?<userId>[a-z0-9\-_]+)\/posts\/(?<postId>[a-z0-9\-_]+)(?<query>\?.*)?$/
 ```
 
-**Testes**:
+**Tests**:
 | Path | Match | Groups |
 |------|-------|--------|
 | `/users/1/posts/2` | ✅ | `{ userId: "1", postId: "2" }` |
@@ -131,19 +131,19 @@ buildRoutePath("/users/:userId/posts/:postId")
 
 ---
 
-### Exemplo 4: Rota com Hífen e Underscore
+### Example 4: Route with Hyphen and Underscore
 
 **Input**:
 ```typescript
 buildRoutePath("/items/:item-id/slug/:item_slug")
 ```
 
-**Resultante**:
+**Result**:
 ```javascript
 /^\/items\/(?<item-id>[a-z0-9\-_]+)\/slug\/(?<item_slug>[a-z0-9\-_]+)(?<query>\?.*)?$/
 ```
 
-**Testes**:
+**Tests**:
 | Path | Match | Groups |
 |------|-------|--------|
 | `/items/item-1/slug/my-slug` | ✅ | `{ item-id: "item-1", item_slug: "my-slug" }` |
@@ -151,19 +151,19 @@ buildRoutePath("/items/:item-id/slug/:item_slug")
 
 ---
 
-### Exemplo 5: Rota com Query String
+### Example 5: Route with Query String
 
 **Input**:
 ```typescript
 buildRoutePath("/search")
 ```
 
-**Resultante**:
+**Result**:
 ```javascript
 /^\/search(?<query>\?.*)?$/
 ```
 
-**Testes**:
+**Tests**:
 | Path | Match | Groups |
 |------|-------|--------|
 | `/search` | ✅ | `{ query: undefined }` |
@@ -172,77 +172,77 @@ buildRoutePath("/search")
 
 ---
 
-## Detalhes Técnicos
+## Technical Details
 
 ### Regex Pattern Breakdown
 
 ```regex
-^                              # Início da string
-  <params>                     # Parâmetros da rota (substituídos)
-  (?<query>\?(.*))?            # Query string opcional (não capture group)
-$                              # Fim da string
+^                              # Start of string
+  <params>                     # Route parameters (replaced)
+  (?<query>\?(.*))?            # Optional query string (non-capture group)
+$                              # End of string
 ```
 
 ### Named Group `query`
 
-O group `(?<query>\\?(.*))?` captura:
-- `\?` - caractere `?` literal (escapado)
-- `(.*)` - qualquer caractere zero ou mais vezes
-- `?` - group é opcional
+The group `(?<query>\\?(.*))?` captures:
+- `\?` - literal `?` character (escaped)
+- `(.*)` - any character zero or more times
+- `?` - group is optional
 
-**Exemplo de extração**:
+**Extraction example**:
 ```javascript
 // Path: "/users/123?page=1&limit=10"
 // Groups: { id: "123", query: "?page=1&limit=10" }
 
-// O group "query" inclui o "?"
-// getQueries() remove o "?" com substring(1)
+// The "query" group includes the "?"
+// getQueries() removes the "?" with substring(1)
 ```
 
-### Caracteres Permitidos em Parâmetros
+### Allowed Characters in Parameters
 
-A regex `[a-z0-9\\-_]+` permite:
-- `a-z`: letras minúsculas
-- `0-9`: dígitos
-- `-`: hífen
+The regex `[a-z0-9\\-_]+` allows:
+- `a-z`: lowercase letters
+- `0-9`: digits
+- `-`: hyphen
 - `_`: underscore
 
-**Não permite**:
-- Letras maiúsculas (ex: `:ID`)
-- Espaços
-- Caracteres especiais (ex: `:user@email`)
+**Does NOT allow**:
+- Uppercase letters (ex: `:ID`)
+- Spaces
+- Special characters (ex: `:user@email`)
 
-### Suporte a Query String
+### Query String Support
 
-A query string é capturada como um **único group nomeado** `query`. A parsing da query string é feito separadamente por `getQueries()`.
+The query string is captured as a **single named group** `query`. Query string parsing is done separately by `getQueries()`.
 
 ```typescript
-// buildRoutePath captura:
+// buildRoutePath captures:
 { query: "?page=1&limit=10" }
 
-// getQueries processa:
+// getQueries processes:
 "page=1&limit=10" → { page: "1", limit: "10" }
 ```
 
 ---
 
-## Integração com getRouteParams e getQueries
+## Integration with getRouteParams and getQueries
 
-### Fluxo Completo de Extração
+### Complete Extraction Flow
 
 ```typescript
-// 1. buildRoutePath cria a regex
+// 1. buildRoutePath creates the regex
 const routeRegex = buildRoutePath("/users/:id");
 
-// 2. Executa no path
+// 2. Execute on path
 const regexVerifier = routeRegex.exec("/users/123?page=1");
 // { 0: "/users/123?page=1", groups: { id: "123", query: "?page=1" } }
 
-// 3. getRouteParams extrai parâmetros da rota
+// 3. getRouteParams extracts route parameters
 const params = getRouteParams(regexVerifier.groups);
 // { id: "123" }
 
-// 4. getQueries extrai query parameters
+// 4. getQueries extracts query parameters
 const queries = getQueries(regexVerifier.groups?.['query']);
 // { page: "1" }
 ```
@@ -259,11 +259,11 @@ export function getRouteParams(
 }
 ```
 
-**Comportamento**:
-1. Remove o group `query` (que não é um parâmetro de rota)
-2. Retorna apenas parâmetros da rota
+**Behavior**:
+1. Removes the `query` group (which is not a route parameter)
+2. Returns only route parameters
 
-**Exemplo**:
+**Example**:
 ```javascript
 // Groups: { id: "123", query: "?page=1" }
 // After destructuring: { id: "123" }
@@ -271,9 +271,9 @@ export function getRouteParams(
 
 ---
 
-## Casos Edge e Limitações
+## Edge Cases and Limitations
 
-### Edge Case 1: Path Vazio
+### Edge Case 1: Empty Path
 
 ```typescript
 buildRoutePath("");
@@ -281,7 +281,7 @@ buildRoutePath("");
 // Match: "", "?page=1"
 ```
 
-### Edge Case 2: Apenas Query String
+### Edge Case 2: Query String Only
 
 ```typescript
 buildRoutePath("?");
@@ -289,33 +289,33 @@ buildRoutePath("?");
 // Match: "?", "?page=1"
 ```
 
-### Edge Case 3: Parâmetro Sem Nome Válido
+### Edge Case 3: Parameter Without Valid Name
 
 ```typescript
-buildRoutePath("/users/:");  // Parâmetro sem nome
-// : não tem [a-zA-Z]+, então não é substituído
+buildRoutePath("/users/:");  // Parameter without name
+// : does not have [a-zA-Z]+, so not replaced
 // new RegExp("^/users/:(?<query>\\?.*)?$")
 ```
 
-### Edge Case 4: Parâmetro com Números Iniciais
+### Edge Case 4: Parameter with Initial Numbers
 
 ```typescript
-buildRoutePath("/users/:1id");  // Parâmetro começa com número
-// :1id não match /:([a-zA-Z]+)/g (começa com 1)
+buildRoutePath("/users/:1id");  // Parameter starts with number
+// :1id does not match /:([a-zA-Z]+)/g (starts with 1)
 // new RegExp("^/users/:1id(?<query>\\?.*)?$")
-// O :1id não é tratado como parâmetro
+// The :1id is not treated as a parameter
 ```
 
-### Edge Case 5: Parâmetro com Maiúsculas
+### Edge Case 5: Parameter with Uppercase
 
 ```typescript
 buildRoutePath("/users/:ID");
-// :ID match /:([a-zA-Z]+)/g
+// :ID matches /:([a-zA-Z]+)/g
 // new RegExp("^/users/(?<ID>[a-z0-9\\-_]+)(?<query>\\?.*)?$")
-// Mas "/users/ABC" não match (maiúsculas não são permitidas no valor)
+// But "/users/ABC" does not match (uppercase not allowed in value)
 ```
 
-**Resultado**: O parâmetro `:ID` é reconhecido, mas valores com maiúsculas não são aceitos.
+**Result**: The parameter `:ID` is recognized, but values with uppercase are not accepted.
 
 ---
 
@@ -323,14 +323,14 @@ buildRoutePath("/users/:ID");
 
 ### Regex Compilation
 
-Cada chamada a `buildRoutePath()` compila uma nova regex:
+Each call to `buildRoutePath()` compiles a new regex:
 ```typescript
-return queryRegex;  // nova RegExp() a cada chamada
+return queryRegex;  // new RegExp() each call
 ```
 
-**Otimização possível**:
+**Possible optimization**:
 ```typescript
-// Cache de compilação
+// Compilation cache
 const routeCache = new Map<string, RegExp>();
 
 function buildRoutePath(path: string): RegExp {
@@ -344,71 +344,71 @@ function buildRoutePath(path: string): RegExp {
 }
 ```
 
-### Impacto
+### Impact
 
-- **Sem cache**: O(n × m) onde n=chamadas, m=comprimento do path
-- **Com cache**: O(n) + O(m) para primeira compilação
+- **Without cache**: O(n × m) where n=calls, m=path length
+- **With cache**: O(n) + O(m) for first compilation
 
 ---
 
-## Uso no Framework
+## Usage in Framework
 
-### Em Routes.createRoute()
+### In Routes.createRoute()
 
 ```typescript
 private createRoute(method: string, sufix: string, handlers: RouteHandler[]): void {
   const newRoute: Route = {
     method,
     originalSufix: sufix,
-    sufix: buildRoutePath(sufix),  // ← Compilação aqui
+    sufix: buildRoutePath(sufix),  // ← Compilation here
     // ...
   };
 }
 ```
 
-**Cada rota tem sua regex compilada uma vez** no momento de criação.
+**Each route has its regex compiled once** at creation time.
 
-### Em getRouteIndex()
+### In getRouteIndex()
 
 ```typescript
 private getRouteIndex(path: string, method: string): number {
   return this.routes.findIndex((e) => {
-    const regexVerifier = e.sufix.exec(path);  // ← Executa regex compilada
+    const regexVerifier = e.sufix.exec(path);  // ← Executes compiled regex
     // ...
   });
 }
 ```
 
-**A regex compilada é executada para cada requisição** até encontrar match.
+**The compiled regex is executed for each request** until match is found.
 
 ---
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Conversão** | `:param` → `(?<param>[a-z0-9\\-_]+)` |
+| Aspect | Implementation |
+|--------|---------------|
+| **Conversion** | `:param` → `(?<param>[a-z0-9\\-_]+)` |
 | **Query Support** | `(?<query>\\?.*)?` |
-| **Named Groups** | Para extração de parâmetros |
-| **Compilação** | A cada chamada (sem cache) |
-| **Custo** | O(m) por rota criada |
-| **Execução** | O(n) por requisição (n=parâmetros) |
+| **Named Groups** | For parameter extraction |
+| **Compilation** | Each call (no cache) |
+| **Cost** | O(m) per route created |
+| **Execution** | O(n) per request (n=parameters) |
 
-### Padrão de Uso
+### Usage Pattern
 
 1. **Route definition**: `app.get("/users/:id", handler)`
-2. **buildRoutePath**: Compila em regex named groups
-3. **Route storage**: Regex é armazenada em `Route.sufix`
-4. **Request time**: `route.sufix.exec(path)` extrai params
+2. **buildRoutePath**: Compiles to regex named groups
+3. **Route storage**: Regex is stored in `Route.sufix`
+4. **Request time**: `route.sufix.exec(path)` extracts params
 
-### Vantagens
+### Advantages
 
-- **Flexibilidade**: Suporta múltiplos parâmetros
-- **Validação**: Regex restringe caracteres permitidos
-- **Extração**: Named groups facilitam extração de parâmetros
+- **Flexibility**: Supports multiple parameters
+- **Validation**: Regex restricts allowed characters
+- **Extraction**: Named groups make parameter extraction easy
 
-### Limitações
+### Limitations
 
-- Apenas letras minúsculas no valor (sem maiúsculas)
-- Sem suporte a regex customizada
-- Sem validação de tipos (não distingue `:id` vs `:userId`)
+- Only lowercase letters in value (no uppercase)
+- No custom regex support
+- No type validation (doesn't distinguish `:id` vs `:userId`)

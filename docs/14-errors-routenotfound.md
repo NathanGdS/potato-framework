@@ -1,8 +1,8 @@
-# RouteNotFoundException - Erro de Rota Não Encontrada
+# RouteNotFoundException - Route Not Found Error
 
-## Visão Geral
+## Overview
 
-`RouteNotFoundException` é a classe de erro customizada que é lançada quando **nenhuma rota corresponde ao path e método HTTP** de uma requisição.
+`RouteNotFoundException` is the custom error class that is thrown when **no route matches the path and HTTP method** of a request.
 
 ```typescript
 import { CONSTANTS_ROUTES } from "../constants/routes.constants.js";
@@ -24,17 +24,17 @@ export class RouteNotFoundException extends Error {
 }
 ```
 
-## Estrutura da Classe
+## Class Structure
 
-### Atributos
+### Attributes
 
-| Atributo | Tipo | Valor | Descrição |
+| Attribute | Type | Value | Description |
 |----------|------|-------|-----------|
-| `name` | `string` | `"RouteNotFoundException"` | Nome do erro |
-| `status` | `number` | `404` | Status HTTP correspondente |
-| `message` | `string` | `"Route not founded!"` | Mensagem de erro |
+| `name` | `string` | `"RouteNotFoundException"` | Error name |
+| `status` | `number` | `404` | Corresponding HTTP status |
+| `message` | `string` | `"Route not founded!"` | Error message |
 
-### Mensagem de Erro
+### Error Message
 
 ```typescript
 // constants/routes.constants.ts
@@ -43,11 +43,11 @@ export const CONSTANTS_ROUTES: { readonly INVALID_ROUTE_MESSAGE: string } = {
 };
 ```
 
-**Nota**: A mensagem tem um typo intencional (`founded` em vez de `found`). Mantido para consistência.
+**Note**: The message has an intentional typo (`founded` instead of `found`). Kept for consistency.
 
-## Quando É Lançado
+## When It's Thrown
 
-### Em Routes.getRouteIndex()
+### In Routes.getRouteIndex()
 
 ```typescript
 // Routes.ts
@@ -66,7 +66,7 @@ private getRouteIndex(path: string, method: string): number {
 }
 ```
 
-### Em Routes.executeRequestCycle()
+### In Routes.executeRequestCycle()
 
 ```typescript
 // Routes.ts
@@ -79,7 +79,7 @@ async executeRequestCycle(
   const routeIndex = this.getRouteIndex(path, method);
   
   if (routeIndex < 0) {
-    throw new RouteNotFoundException();  // ← Lançado aqui
+    throw new RouteNotFoundException();  // ← Thrown here
   }
   
   const route = this.routes[routeIndex];
@@ -87,13 +87,13 @@ async executeRequestCycle(
 }
 ```
 
-**Condição para lançamento**:
-- `getRouteIndex()` retorna `-1` (não encontrou rota)
-- Ou seja: nenhuma rota no array `this.routes` corresponde ao path + method
+**Condition for throwing**:
+- `getRouteIndex()` returns `-1` (no route found)
+- That is: no route in the `this.routes` array matches path + method
 
-## Fluxo Completo do Erro
+## Complete Error Flow
 
-### Sequência de Lançamento e Tratamento
+### Throw and Handling Sequence
 
 ```mermaid
 sequenceDiagram
@@ -122,14 +122,14 @@ sequenceDiagram
     SweetPotato-->>Client: HTTP Response (404 Not Found)
 ```
 
-### Diagrama de Código
+### Code Diagram
 
 ```typescript
 // 1. Routes.executeRequestCycle
 async executeRequestCycle(...): Promise<void> {
   const routeIndex = this.getRouteIndex(path, method);
   if (routeIndex < 0) {
-    throw new RouteNotFoundException();  // ← Lança aqui
+    throw new RouteNotFoundException();  // ← Throw here
   }
   // ...
 }
@@ -139,13 +139,13 @@ private async handleRoute(): Promise<void> {
   try {
     return await this.executeRequestCycle(...);
   } catch (error) {
-    // 3. Tratamento do erro
+    // 3. Error handling
     if (error instanceof RouteNotFoundException) {
       return this.finishRequest(HttpStatusCode.NOT_FOUND, {  // 404
         message: (error as Error).message,
       });
     }
-    // Outros erros → 500
+    // Other errors → 500
     return this.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, {
       message: (error as Error).message,
     });
@@ -153,63 +153,63 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-## Exemplos de Ocorrência
+## Occurrence Examples
 
-### Exemplo 1: Path Não Registrado
+### Example 1: Unregistered Path
 
 ```typescript
 import { SweetPotatoApp } from '../SweetPotatoApp.mjs';
 
 const app = SweetPotatoApp();
 
-// Registra apenas /users
+// Register only /users
 app.get('/users', (ctx) => {
   app.finishRequest(200, { users: [] });
 });
 
-// Acessa /posts que não foi registrado
+// Access /posts which was not registered
 app.listen(8000);
 
 // Request: GET /posts
 // Result: 404 RouteNotFoundException
 ```
 
-### Exemplo 2: Method Incorreto
+### Example 2: Incorrect Method
 
 ```typescript
 import { SweetPotatoApp } from '../SweetPotatoApp.mjs';
 
 const app = SweetPotatoApp();
 
-// Registra GET /users
+// Register GET /users
 app.get('/users', (ctx) => {
   app.finishRequest(200, { users: [] });
 });
 
-// Request: POST /users (método não registrado)
+// Request: POST /users (method not registered)
 // Result: 404 RouteNotFoundException
 ```
 
-### Exemplo 3: Path com Parameter Incorreto
+### Example 3: Path with Incorrect Parameter
 
 ```typescript
 import { SweetPotatoApp } from '../SweetPotatoApp.mjs';
 
 const app = SweetPotatoApp();
 
-// Registra /users/:id
+// Register /users/:id
 app.get('/users/:id', (ctx) => {
   app.finishRequest(200, { id: ctx.params?.id });
 });
 
-// Request: /posts (path não registrado)
+// Request: /posts (unregistered path)
 // Result: 404 RouteNotFoundException
 
-// Request: /users (falta :id no path)
-// Result: 404 RouteNotFoundException (regex não match)
+// Request: /users (missing :id in path)
+// Result: 404 RouteNotFoundException (regex doesn't match)
 ```
 
-## Propriedades do Erro
+## Error Properties
 
 ### name: "RouteNotFoundException"
 
@@ -225,10 +225,10 @@ const error = new RouteNotFoundException();
 console.log(error.status);  // 404
 ```
 
-**Uso no framework**:
+**Usage in framework**:
 ```typescript
-// Em SweetPotato, não é usado diretamente
-// O status é passado para finishRequest como HttpStatusCode.NOT_FOUND (404)
+// In SweetPotato, not used directly
+// The status is passed to finishRequest as HttpStatusCode.NOT_FOUND (404)
 ```
 
 ### message: "Route not founded!"
@@ -238,9 +238,9 @@ const error = new RouteNotFoundException();
 console.log(error.message);  // "Route not founded!"
 ```
 
-**Uso no framework**:
+**Usage in framework**:
 ```typescript
-// Em SweetPotato.handleRoute()
+// In SweetPotato.handleRoute()
 if (error instanceof RouteNotFoundException) {
   return this.finishRequest(HttpStatusCode.NOT_FOUND, {
     message: (error as Error).message,  // "Route not founded!"
@@ -261,9 +261,9 @@ if (ErrorWithCapture.captureStackTrace) {
 }
 ```
 
-**Propósito**: Remove o stack trace dos frames internos do framework, mostrando apenas o código do usuário.
+**Purpose**: Removes internal framework frames from stack trace, showing only user code.
 
-### Com captureStackTrace
+### With captureStackTrace
 
 ```
 Error: Route not founded!
@@ -274,11 +274,11 @@ Error: Route not founded!
     ...
 ```
 
-### Sem captureStackTrace (comportamento padrão do Node.js)
+### Without captureStackTrace (default Node.js behavior)
 
-O Node.js por padrão inclui todos os frames no stack trace, incluindo chamadas internas do framework.
+Node.js by default includes all frames in stack trace, including framework internal calls.
 
-## Comparação com Outros Frameworks
+## Comparison with Other Frameworks
 
 ### Express.js
 
@@ -289,8 +289,8 @@ app.get('/users', handler);
 // Request: GET /unknown
 // Response: 404 "Cannot GET /unknown"
 
-// Express usa uma abordagem diferente:
-// Se não encontra rota, chama next() com um Error
+// Express uses a different approach:
+// If no route found, calls next() with an Error
 ```
 
 ### Fastify
@@ -302,7 +302,7 @@ app.get('/users', handler);
 // Request: GET /unknown
 // Response: 404 { error: "Not Found", message: "Cannot GET /unknown" }
 
-// Fastify tem um handler 404 interno
+// Fastify has an internal 404 handler
 ```
 
 ### Potato Framework
@@ -314,57 +314,57 @@ app.get('/users', handler);
 // Request: GET /unknown
 // Response: 404 { message: "Route not founded!" }
 
-// Potato lança RouteNotFoundException e captura em SweetPotato
+// Potato throws RouteNotFoundException and catches it in SweetPotato
 ```
 
-## Type Checking no Framework
+## Type Checking in Framework
 
 ### instanceof Check
 
 ```typescript
 if (error instanceof RouteNotFoundException) {
-  // Trata como 404
+  // Handle as 404
   return this.finishRequest(HttpStatusCode.NOT_FOUND, { ... });
 }
 ```
 
-**Por que `instanceof`**:
-- Diferencia de outros erros
-- Permite tratamento específico
-- Mantém encapsulamento de lógica
+**Why `instanceof`**:
+- Differentiates from other errors
+- Allows specific handling
+- Keeps logic encapsulation
 
 ### Error Type Checking Alternatives
 
-**Alternativa 1: Check por name**
+**Alternative 1: Check by name**
 ```typescript
 if (error.name === 'RouteNotFoundException') {
   // ...
 }
 ```
-**Problema**: Nome pode mudar, menos seguro
+**Problem**: Name can change, less secure
 
-**Alternativa 2: Check por message**
+**Alternative 2: Check by message**
 ```typescript
 if (error.message === 'Route not founded!') {
   // ...
 }
 ```
-**Problema**: Mensagem pode mudar, menos seguro
+**Problem**: Message can change, less secure
 
-**Alternativa 3: Symbol ou tag**
+**Alternative 3: Symbol or tag**
 ```typescript
 const RouteNotFoundExceptionTag = Symbol('RouteNotFoundException');
 if (error[RouteNotFoundExceptionTag]) {
   // ...
 }
 ```
-**Problema**: Mais complexo, não necessário
+**Problem**: More complex, not necessary
 
-**Conclusão**: `instanceof` é a melhor abordagem.
+**Conclusion**: `instanceof` is the best approach.
 
-## Customização do Erro
+## Error Customization
 
-### Extensão da Classe
+### Extending the Class
 
 ```typescript
 import { RouteNotFoundException } from './package/index.mjs';
@@ -376,30 +376,30 @@ class CustomRouteNotFoundException extends RouteNotFoundException {
   }
 }
 
-// Em Routes
+// In Routes
 if (routeIndex < 0) {
   throw new CustomRouteNotFoundException(path, method);
 }
 ```
 
-**Nota**: Isso quebraria o `instanceof RouteNotFoundException` check em SweetPotato.
+**Note**: This would break the `instanceof RouteNotFoundException` check in SweetPotato.
 
-### Solução: Uso do Type Guard
+### Solution: Using Type Guard
 
 ```typescript
 function isRouteNotFoundException(error: Error): error is RouteNotFoundException {
   return error.name === 'RouteNotFoundException';
 }
 
-// Em SweetPotato
+// In SweetPotato
 if (isRouteNotFoundException(error)) {
-  // Trata como 404
+  // Handle as 404
 }
 ```
 
-## Testes de Unitário
+## Unit Tests
 
-### Testar Exception
+### Test Exception
 
 ```typescript
 // routes.test.ts
@@ -427,7 +427,7 @@ describe('Routes', () => {
 });
 ```
 
-### Testar Integração com SweetPotato
+### Test Integration with SweetPotato
 
 ```typescript
 // sweetpotato.test.ts
@@ -461,13 +461,13 @@ describe('SweetPotato', () => {
 
 ## Performance Considerations
 
-### Overhead de Criação
+### Creation Overhead
 
 ```typescript
-// Criação do erro
+// Error creation
 new RouteNotFoundException();
 
-// Opcional: captureStackTrace
+// Optional: captureStackTrace
 const ErrorWithCapture = Error as typeof Error & {
   captureStackTrace?: (target: object, constructor: Function) => void;
 };
@@ -476,13 +476,13 @@ if (ErrorWithCapture.captureStackTrace) {
 }
 ```
 
-**Impacto**:
-- Criação de objeto Error: O(1)
-- `captureStackTrace`: O(n) onde n = tamanho do stack trace (aproximado)
+**Impact**:
+- Error object creation: O(1)
+- `captureStackTrace`: O(n) where n = stack trace size (approximate)
 
-### Otimização
+### Optimization
 
-Se performance for crítica, pode-se evitar `captureStackTrace`:
+If performance is critical, you can avoid `captureStackTrace`:
 
 ```typescript
 export class RouteNotFoundException extends Error {
@@ -491,37 +491,37 @@ export class RouteNotFoundException extends Error {
   constructor() {
     super(CONSTANTS_ROUTES.INVALID_ROUTE_MESSAGE);
     this.name = "RouteNotFoundException";
-    // remove captureStackTrace para performance
+    // remove captureStackTrace for performance
   }
 }
 ```
 
 **Trade-off**:
-- **Com**: Stack trace limpo (mostra código do usuário)
-- **Sem**: Stack trace mais detalhado (mostra chamadas do framework)
+- **With**: Clean stack trace (shows user code)
+- **Without**: More detailed stack trace (shows framework calls)
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Tipo** | Class extensão de `Error` |
+| Aspect | Implementation |
+|--------|---------------|
+| **Type** | Class extending `Error` |
 | **name** | `"RouteNotFoundException"` |
 | **status** | `404` |
 | **message** | `"Route not founded!"` |
-| **Lançado em** | `Routes.executeRequestCycle()` |
-| **Tratado em** | `SweetPotato.handleRoute()` |
+| **Thrown in** | `Routes.executeRequestCycle()` |
+| **Handled in** | `SweetPotato.handleRoute()` |
 | **Response** | `404 Not Found` |
 
-### Propriedades do Erro
+### Error Properties
 
-| Propriedade | Valor | Uso |
-|-------------|-------|-----|
+| Property | Value | Usage |
+|------------|-------|-----|
 | `name` | `"RouteNotFoundException"` | Type check |
-| `status` | `404` | Status HTTP |
-| `message` | `"Route not founded!"` | Mensagem de erro |
+| `status` | `404` | HTTP status |
+| `message` | `"Route not founded!"` | Error message |
 | `stack` | Stack trace | Debug |
 
-### Fluxo Completo
+### Complete Flow
 
 ```
 Routes.executeRequestCycle()
@@ -539,20 +539,20 @@ finishRequest(HttpStatusCode.NOT_FOUND, { message })
 HTTP Response (404)
 ```
 
-### Vantagens
+### Advantages
 
-1. **Type Safety**: `instanceof` check é seguro
-2. **Encapsulamento**: Lógica de tratamento está em um lugar
-3. **Mensagens**: Mensagem customizada para usuário
-4. **Consistência**: Todos os erros 404 são tratados igualmente
+1. **Type Safety**: `instanceof` check is safe
+2. **Encapsulation**: Handling logic is in one place
+3. **Custom Messages**: Custom message for user
+4. **Consistency**: All 404 errors handled equally
 
-### Limitações
+### Limitations
 
-1. **Não estensível**: `instanceof` check pode quebrar com extensão
-2. **Typo na mensagem**: "Route not founded!" (intencional ou não)
-3. **Sem dados contextuais**: Não inclui path/method no erro
+1. **Not extensible**: `instanceof` check can break with extension
+2. **Typo in message**: "Route not founded!" (intentional or not)
+3. **No contextual data**: Doesn't include path/method in error
 
-### Possíveis Melhorias
+### Possible Improvements
 
 ```typescript
 export class RouteNotFoundException extends Error {
@@ -567,14 +567,14 @@ export class RouteNotFoundException extends Error {
   }
 }
 
-// Em Routes
+// In Routes
 throw new RouteNotFoundException(path, method);
 
-// Em SweetPotato
+// In SweetPotato
 if (error instanceof RouteNotFoundException) {
   return this.finishRequest(HttpStatusCode.NOT_FOUND, {
     message: error.message,
-    path: error.path,    // Dados adicionais
+    path: error.path,    // Additional data
     method: error.method,
   });
 }

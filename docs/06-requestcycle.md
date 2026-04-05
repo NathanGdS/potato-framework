@@ -1,8 +1,8 @@
-# RequestCycle - Executor de Handlers
+# RequestCycle - Handler Executor
 
-## Visão Geral
+## Overview
 
-`RequestCycle` é a classe responsável por **executar handlers em sequência**. Ela é o coração do pipeline de middleware/handlers, suportando tanto funções síncronas quanto assíncronas.
+`RequestCycle` is the class responsible for **executing handlers in sequence**. It is the heart of the middleware/handler pipeline, supporting both synchronous and asynchronous functions.
 
 ```typescript
 export class RequestCycle {
@@ -14,13 +14,13 @@ export class RequestCycle {
 }
 ```
 
-## Estrutura de Dados
+## Data Structure
 
-### Atributo Privado
+### Private Attribute
 
-| Atributo | Tipo | Descrição |
+| Attribute | Type | Description |
 |----------|------|-----------|
-| `handlers` | `RouteHandler[]` | Array de handlers a serem executados |
+| `handlers` | `RouteHandler[]` | Array of handlers to be executed |
 
 ### Handler Type
 
@@ -28,9 +28,9 @@ export class RequestCycle {
 type RouteHandler = (ctx: HandlerContext) => void | Promise<void>;
 ```
 
-Handlers podem ser:
-- **Síncronos**: `(ctx) => { ... }`
-- **Assíncronos**: `async (ctx) => { ... }` ou `(ctx) => Promise<void>`
+Handlers can be:
+- **Synchronous**: `(ctx) => { ... }`
+- **Asynchronous**: `async (ctx) => { ... }` or `(ctx) => Promise<void>`
 
 ---
 
@@ -42,16 +42,16 @@ constructor(handlers?: RouteHandler[]) {
 }
 ```
 
-**Comportamento**:
-- Se `handlers` fornecido: inicializa com array
-- Se `handlers` é `undefined`: inicializa com array vazio
+**Behavior**:
+- If `handlers` provided: initializes with array
+- If `handlers` is `undefined`: initializes with empty array
 
-**Uso comum**:
+**Common usage**:
 ```typescript
-// Vazio (adiciona depois)
+// Empty (add later)
 const cycle = new RequestCycle();
 
-// Com handlers iniciais
+// With initial handlers
 const cycle = new RequestCycle([middleware1, middleware2, handler]);
 ```
 
@@ -65,9 +65,9 @@ add(func: RouteHandler): void {
 }
 ```
 
-**Responsabilidade**: Adiciona um handler ao final da lista.
+**Responsibility**: Add a handler to the end of the list.
 
-**Uso**:
+**Usage**:
 ```typescript
 const cycle = new RequestCycle();
 cycle.add(middleware1);
@@ -75,7 +75,7 @@ cycle.add(middleware2);
 cycle.add(handler);
 ```
 
-**Ordem de execução**: Primeiro adicionado → Primeiro executado (FIFO)
+**Execution order**: First added → First executed (FIFO)
 
 ---
 
@@ -87,15 +87,15 @@ addMultiples(funcs: RouteHandler[]): void {
 }
 ```
 
-**Responsabilidade**: Adiciona múltiplos handlers de uma vez.
+**Responsibility**: Add multiple handlers at once.
 
-**Uso**:
+**Usage**:
 ```typescript
 const cycle = new RequestCycle();
 cycle.addMultiples([middleware1, middleware2, handler]);
 ```
 
-**Equivalente a**:
+**Equivalent to**:
 ```typescript
 funcs.forEach(func => cycle.add(func));
 ```
@@ -117,43 +117,43 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
 }
 ```
 
-**Responsabilidade**: Executa todos os handlers em sequência, detectando se são async.
+**Responsibility**: Execute all handlers in sequence, detecting if they are async.
 
-### Fluxo de Execução
+### Execution Flow
 
 ```
-1. Loop sobre handlers
+1. Loop over handlers
    │
    ├─→ Handler 1
    │   ├─→ isPromise() check
-   │   ├─→ Se SYNC: call(ctx)
-   │   └─→ Se ASYNC: await call(ctx)
+   │   ├─→ If SYNC: call(ctx)
+   │   └─→ If ASYNC: await call(ctx)
    │
    ├─→ Handler 2
-   │   └─→ ... mesmo processo
+   │   └─→ ... same process
    │
    └─→ Handler N
-       └─→ ... mesmo processo
+       └─→ ... same process
 ```
 
-### Detecção de Async
+### Async Detection
 
 ```typescript
 if (!isPromise(actualHandler)) {
-  actualHandler(data);  // Síncrono
+  actualHandler(data);  // Synchronous
 } else {
-  await actualHandler(data);  // Assíncrono
+  await actualHandler(data);  // Asynchronous
 }
 ```
 
-**Como funciona**:
-1. `isPromise()` verifica se o handler é async
-2. Se síncrono: chama diretamente
-3. Se assíncrono: aguarda com `await`
+**How it works**:
+1. `isPromise()` checks if handler is async
+2. If synchronous: call directly
+3. If asynchronous: wait with `await`
 
 ### HandlerContext
 
-O mesmo `data` é passado para todos os handlers:
+The same `data` is passed to all handlers:
 
 ```typescript
 interface HandlerContext {
@@ -164,10 +164,10 @@ interface HandlerContext {
 }
 ```
 
-**Comportamento**:
-- O mesmo objeto é passado para todos os handlers
-- O objeto é `Object.freeze()` antes de ser passado (em `Routes.executeRequestCycle()`)
-- Handlers **não podem mutar** o contexto
+**Behavior**:
+- Same object is passed to all handlers
+- Object is `Object.freeze()` before being passed (in `Routes.executeRequestCycle()`)
+- Handlers **cannot mutate** the context
 
 ---
 
@@ -179,18 +179,18 @@ reset(): void {
 }
 ```
 
-**Responsabilidade**: Limpa todos os handlers.
+**Responsibility**: Clear all handlers.
 
-**Uso**:
+**Usage**:
 ```typescript
 const cycle = new RequestCycle([h1, h2, h3]);
 cycle.reset();  // handlers = []
 ```
 
-**Cenários**:
-- Reutilização do RequestCycle
-- Testes
-- Reconfiguração dinâmica
+**Scenarios**:
+- Reusing RequestCycle
+- Tests
+- Dynamic reconfiguration
 
 ---
 
@@ -202,22 +202,22 @@ getAllHandlers(): RouteHandler[] {
 }
 ```
 
-**Responsabilidade**: Retorna cópia do array de handlers (referência interna).
+**Responsibility**: Returns copy of handlers array (internal reference).
 
-**Uso**:
+**Usage**:
 ```typescript
 const cycle = new RequestCycle([h1, h2]);
 const allHandlers = cycle.getAllHandlers();
 // allHandlers = [h1, h2]
 ```
 
-**Nota**: Retorna a referência interna (não cópia). Modificações afetam o estado interno.
+**Note**: Returns internal reference (not a copy). Modifications affect internal state.
 
 ---
 
-## isPromise() - Detecção de Async
+## isPromise() - Async Detection
 
-### Implementação
+### Implementation
 
 ```typescript
 export function isPromise(fn: unknown): fn is Promise<unknown> {
@@ -232,34 +232,34 @@ export function isPromise(fn: unknown): fn is Promise<unknown> {
 }
 ```
 
-### Lógica de Detecção
+### Detection Logic
 
 1. **Check 1**: `typeof fn === 'function' && fn.constructor.name === 'AsyncFunction'`
-   - Detecta funções declaradas com `async`
+   - Detects functions declared with `async`
    - Ex: `async function handler(ctx) {}`
 
 2. **Check 2**: `fn instanceof Promise`
-   - Detecta funções que retornam `Promise` diretamente
+   - Detects functions that return `Promise` directly
    - Ex: `(ctx) => new Promise(resolve => ...)`
 
-### Exemplos
+### Examples
 
-| Handler | isPromise() | Execução |
+| Handler | isPromise() | Execution |
 |---------|-------------|----------|
-| `(ctx) => {}` | `false` | Síncrona |
-| `async (ctx) => {}` | `true` | Assíncrona (await) |
-| `(ctx) => Promise.resolve()` | `true` | Assíncrona (await) |
-| `(ctx) => { return new Promise(...) }` | `true` | Assíncrona (await) |
-| `(ctx) => { return new Promise(...) }()` | `false` | Síncrona (immediate invocation) |
+| `(ctx) => {}` | `false` | Synchronous |
+| `async (ctx) => {}` | `true` | Asynchronous (await) |
+| `(ctx) => Promise.resolve()` | `true` | Asynchronous (await) |
+| `(ctx) => { return new Promise(...) }` | `true` | Asynchronous (await) |
+| `(ctx) => { return new Promise(...) }()` | `false` | Synchronous (immediate invocation) |
 
-### Casos Edge
+### Edge Cases
 
-**Arrow Function Async**:
+**Async Arrow Function**:
 ```typescript
 const handler = async (ctx) => {};  // isPromise() = true ✅
 ```
 
-**Function Declaration Async**:
+**Async Function Declaration**:
 ```typescript
 async function handler(ctx) {}  // isPromise() = true ✅
 ```
@@ -269,16 +269,16 @@ async function handler(ctx) {}  // isPromise() = true ✅
 const handler = (ctx) => Promise.resolve();  // isPromise() = true ✅
 ```
 
-**Síncrono**:
+**Synchronous**:
 ```typescript
 const handler = (ctx) => {};  // isPromise() = false ✅
 ```
 
 ---
 
-## Padrões de Uso
+## Usage Patterns
 
-### Uso Simples
+### Simple Usage
 
 ```typescript
 const cycle = new RequestCycle();
@@ -289,7 +289,7 @@ cycle.add(handler);
 await cycle.executeRequestCycle({ body, params, headers, queries });
 ```
 
-### Uso com Handlers Iniciais
+### Usage with Initial Handlers
 
 ```typescript
 const cycle = new RequestCycle([middleware1, middleware2]);
@@ -298,17 +298,17 @@ cycle.add(handler);
 await cycle.executeRequestCycle(ctx);
 ```
 
-### Uso com Mixed Sync/Async
+### Usage with Mixed Sync/Async
 
 ```typescript
 const syncMiddleware = (ctx) => {
   console.log('Sync middleware');
-  // Não chama finishRequest - continua chain
+  // Does not call finishRequest - continues chain
 };
 
 const asyncMiddleware = async (ctx) => {
   await db.query('SELECT 1');
-  // Não chama finishRequest - continua chain
+  // Does not call finishRequest - continues chain
 };
 
 const handler = (ctx) => {
@@ -323,7 +323,7 @@ cycle.add(handler);
 await cycle.executeRequestCycle(ctx);
 ```
 
-### Uso com Resource
+### Usage with Resource
 
 ```typescript
 export class Resource extends Routes {
@@ -342,7 +342,7 @@ export class Resource extends Routes {
 }
 ```
 
-### Uso com Routes
+### Usage with Routes
 
 ```typescript
 export class Routes {
@@ -366,29 +366,29 @@ export class Routes {
 
 ---
 
-## Integração com Routes
+## Integration with Routes
 
-### Fluxo Completo
+### Complete Flow
 
 ```
 Routes.executeRequestCycle()
   │
-  ├─→ Cria HandlerContext
+  ├─→ Create HandlerContext
   │   └─> Object.freeze({ body, params, headers, queries })
   │
-  ├─→ Obtém RequestCycle da rota
-  │   └─> route.requestCycle (criado em createRoute)
+  ├─→ Get RequestCycle from route
+  │   └─> route.requestCycle (created in createRoute)
   │
-  └─→ Executa RequestCycle
+  └─→ Execute RequestCycle
       └─> await cycle.executeRequestCycle(ctx)
           │
           ├─→ Handler 1 (middleware)
           ├─→ Handler 2 (middleware)
-          └─→ Handler 3 (rota)
+          └─→ Handler 3 (route)
               └─> app.finishRequest(200, data)
 ```
 
-### Criação do RequestCycle em createRoute
+### RequestCycle Creation in createRoute
 
 ```typescript
 private createRoute(method: string, sufix: string, handlers: RouteHandler[]): void {
@@ -398,73 +398,73 @@ private createRoute(method: string, sufix: string, handlers: RouteHandler[]): vo
     sufix: buildRoutePath(sufix),
     params: null,
     queries: null,
-    requestCycle: new RequestCycle(handlers),  // ← Criação
+    requestCycle: new RequestCycle(handlers),  // ← Creation
   };
   
   this.routes.push(newRoute);
 }
 ```
 
-**Cada rota tem seu próprio RequestCycle** com os handlers associados.
+**Each route has its own RequestCycle** with associated handlers.
 
 ---
 
-## Middlewares Pattern
+## Middleware Pattern
 
-### Ordem de Execução
+### Execution Order
 
 ```typescript
 app.get('/users', m1, m2, handler);
 
-// Routes.createRequestCycle() cria RequestCycle com:
-// handlers = [m1, m2, handler]
+// Routes.createRequestCycle() creates RequestCycle with:
+// handlers = [m1, m1, handler]
 ```
 
-**Execução**:
+**Execution**:
 ```
-1. m1(ctx) - não chama finishRequest
-2. m2(ctx) - não chama finishRequest  
-3. handler(ctx) - chama finishRequest
+1. m1(ctx) - does not call finishRequest
+2. m2(ctx) - does not call finishRequest  
+3. handler(ctx) - calls finishRequest
 ```
 
 ### Handler Contract
 
-Cada handler deve:
-- **Síncrono**: Executar lógica, não chamar `finishRequest` (a menos que seja o final)
-- **Assíncrono**: `await` operações, não chamar `finishRequest` (a menos que seja o final)
+Each handler must:
+- **Synchronous**: Execute logic, don't call `finishRequest` (unless it's the final one)
+- **Asynchronous**: `await` operations, don't call `finishRequest` (unless it's the final one)
 
-**Exemplo de Middleware Correto**:
+**Correct Middleware Example**:
 ```typescript
 const authMiddleware = async (ctx) => {
   const user = await authenticate(ctx.headers.authorization);
   if (!user) {
     app.finishRequest(401, { error: 'Unauthorized' });
-    return;  // ← Importante: stop chain
+    return;  // ← Important: stop chain
   }
-  // Não chama finishRequest - continua chain
+  // Does not call finishRequest - continues chain
 };
 ```
 
-**Exemplo de Handler Final**:
+**Final Handler Example**:
 ```typescript
 const getHandler = (ctx) => {
-  app.finishRequest(200, { users: [] });  // ← Chama finishRequest
+  app.finishRequest(200, { users: [] });  // ← Calls finishRequest
 };
 ```
 
 ---
 
-## Erros e Tratamento
+## Errors and Handling
 
-### Erro em Handler
+### Error in Handler
 
 ```typescript
-// Handler que lança erro
+// Handler that throws error
 const badHandler = (ctx) => {
   throw new Error('Something went wrong');
 };
 
-// Cai no catch do SweetPotato.handleRoute()
+// Falls into SweetPotato.handleRoute() catch
 try {
   return await this.executeRequestCycle(...);
 } catch (error) {
@@ -474,27 +474,27 @@ try {
 }
 ```
 
-**Comportamento**:
-- Erro em qualquer handler → 500
-- Erro em middleware → 500
-- Erro em handler final → 500
+**Behavior**:
+- Error in any handler → 500
+- Error in middleware → 500
+- Error in final handler → 500
 
-### Handler já chamou finishRequest
+### Handler already called finishRequest
 
 ```typescript
-// Handler que chama finishRequest
+// Handler that calls finishRequest
 const badMiddleware = (ctx) => {
   app.finishRequest(200, { data: 'ok' });
-  // Continue no chain - mas resposta já enviada
+  // Continue in chain - but response already sent
 };
 
-// Handler seguinte tenta chamar finishRequest
+// Next handler tries to call finishRequest
 const nextHandler = (ctx) => {
   app.finishRequest(200, { data: 'ok' });  // [ERR_HTTP_HEADERS_SENT]
 };
 ```
 
-**Prevenção em SweetPotato**:
+**Prevention in SweetPotato**:
 ```typescript
 finishRequest(code: number | undefined, message: unknown): void {
   try {
@@ -502,7 +502,7 @@ finishRequest(code: number | undefined, message: unknown): void {
     this.appRes!.write(JSON.stringify(message));
     this.appRes!.end();
   } catch {
-    // Fallback para [ERR_HTTP_HEADERS_SENT]
+    // Fallback for [ERR_HTTP_HEADERS_SENT]
     this.appRes!.write(JSON.stringify(message));
     this.appRes!.end();
   }
@@ -511,33 +511,33 @@ finishRequest(code: number | undefined, message: unknown): void {
 
 ---
 
-## Resumo de Responsabilidades
+## Responsibility Summary
 
-| Responsabilidade | Métodos |
+| Responsibility | Methods |
 |-----------------|---------|
-| Armazenar handlers | `constructor()`, `add()`, `addMultiples()` |
-| Executar handlers | `executeRequestCycle()` |
-| Limpar handlers | `reset()` |
-| Inspeção | `getAllHandlers()` |
-| Detectar async | `isPromise()` |
+| Store handlers | `constructor()`, `add()`, `addMultiples()` |
+| Execute handlers | `executeRequestCycle()` |
+| Clear handlers | `reset()` |
+| Inspection | `getAllHandlers()` |
+| Detect async | `isPromise()` |
 
 ---
 
-## Padrões de Projeto
+## Design Patterns
 
-| Padrão | Implementação |
+| Pattern | Implementation |
 |--------|---------------|
-| **Chain of Responsibility** | Handlers encadeados, cada um decide se continua |
-| **Strategy** | Handlers podem variar dinamicamente |
-| **Template Method** | `executeRequestCycle()` define estrutura, handlers definem lógica |
+| **Chain of Responsibility** | Chained handlers, each decides if continues |
+| **Strategy** | Handlers can vary dynamically |
+| **Template Method** | `executeRequestCycle()` defines structure, handlers define logic |
 
 ---
 
 ## Performance Considerations
 
-### Loop vsforEach
+### Loop vs forEach
 
-**Usado**:
+**Used**:
 ```typescript
 for (let i = 0; i < this.handlers.length; i++) {
   const actualHandler = this.handlers[i];
@@ -545,17 +545,17 @@ for (let i = 0; i < this.handlers.length; i++) {
 }
 ```
 
-**Alternativa**:
+**Alternative**:
 ```typescript
 this.handlers.forEach(async (actualHandler) => {
   await actualHandler(data);
 });
 ```
 
-**Por que loop?**:
-- Necessidade de `await` em cada handler
-- `forEach` com `async` não espera
-- `for...of` poderia ser usado, mas loop clássico é mais performático
+**Why loop?**:
+- Need for `await` on each handler
+- `forEach` with `async` doesn't wait
+- `for...of` could be used, but classic loop is more performant
 
 ### Array Operations
 
@@ -566,39 +566,39 @@ this.handlers.forEach(async (actualHandler) => {
 
 ---
 
-## Erros Conhecidos e Prevenção
+## Known Errors and Prevention
 
 ### [ERR_HTTP_HEADERS_SENT]
 
-**Causa**: Tentar escrever headers após já ter sido feito
+**Cause**: Trying to write headers after already done
 
-**Prevenção**: `try-catch` em `finishRequest()`
+**Prevention**: try-catch in `finishRequest()`
 
-### Async Handler não aguardado
+### Async Handler not awaited
 
-**Causa**: Handler async sem `await`
+**Cause**: Async handler without `await`
 
-**Prevenção**: `isPromise()` detecta e aguarda com `await`
+**Prevention**: `isPromise()` detects and awaits with `await`
 
-### Handler já finalizou resposta
+### Handler already finished response
 
-**Causa**: Handler chama `finishRequest()` e próximo também tenta
+**Cause**: Handler calls `finishRequest()` and next also tries
 
-**Prevenção**: `writableEnded` check em SweetPotato
+**Prevention**: `writableEnded` check in SweetPotato
 
 ---
 
-## Resumo Técnico
+## Technical Summary
 
-|Aspecto | Implementação |
+|Aspect | Implementation |
 |--------|---------------|
-| **Execution Order** | FIFO (sequencial) |
-| **Async Detection** | `isPromise()` com constructor.name check |
-| **Error Handling** | Try-catch no SweetPotato |
-| **Context Immutability** | `Object.freeze()` em Routes |
+| **Execution Order** | FIFO (sequential) |
+| **Async Detection** | `isPromise()` with constructor.name check |
+| **Error Handling** | Try-catch in SweetPotato |
+| **Context Immutability** | `Object.freeze()` in Routes |
 | **Handler Type** | `(ctx) => void \| Promise<void>` |
 
-**Complexidade**:
-- Execução: O(n) onde n = número de handlers
-- Memória: O(n) para armazenar handlers
-- Tempo por handler: O(1) + tempo do handler em si
+**Complexity**:
+- Execution: O(n) where n = number of handlers
+- Memory: O(n) to store handlers
+- Time per handler: O(1) + handler's own time

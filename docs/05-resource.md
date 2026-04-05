@@ -1,8 +1,8 @@
-# Resource - DSL para Definição de Recursos
+# Resource - DSL for Resource Definition
 
-## Visão Geral
+## Overview
 
-`Resource` é uma classe que estende `Routes` e fornece uma **Fluent API** para definição de recursos RESTful. Ela simplifica a criação de múltiplas rotas para um mesmo recurso.
+`Resource` is a class that extends `Routes` and provides a **Fluent API** for RESTful resource definition. It simplifies creating multiple routes for the same resource.
 
 ```typescript
 export class Resource extends Routes {
@@ -11,14 +11,14 @@ export class Resource extends Routes {
 }
 ```
 
-## Estrutura de Dados
+## Data Structure
 
-### Atributos Privados
+### Private Attributes
 
-| Atributo | Tipo | Descrição |
+| Attribute | Type | Description |
 |----------|------|-----------|
-| `sufix` | `string` | Sufixo base para definição de handlers (ex: `"message"`) |
-| `_defaultMiddlewares` | `RouteHandler[]` | Middlewares padrão para todos os handlers do recurso |
+| `sufix` | `string` | Base suffix for handler definition (ex: `"message"`) |
+| `_defaultMiddlewares` | `RouteHandler[]` | Default middlewares for all resource handlers |
 
 ---
 
@@ -31,20 +31,20 @@ resource(sufix: string): this {
 }
 ```
 
-**Responsabilidade**: Define o sufixo base que será usado por todos os `defineHandler()` subsequentes.
+**Responsibility**: Defines the base suffix that will be used by all subsequent `defineHandler()` calls.
 
-**Uso**:
+**Usage**:
 ```typescript
 app.resource("message")
   .defineHandler(...)
   .defineHandler(...);
 ```
 
-**Expansão**:
-- Sufixo: `"message"`
-- Handlers serão registrados em: `/message`
+**Expansion**:
+- Suffix: `"message"`
+- Handlers will be registered at: `/message`
 
-**Retorno**: `this` (para chainable API)
+**Returns**: `this` (for chainable API)
 
 ---
 
@@ -60,7 +60,7 @@ defineHandler(input: DefineHandlerInput, ...args: RouteHandler[]): this {
   let sufix = this.sufix;
 
   if (input.sufix) {
-    sufix += '/' + input.sufix;  // Adiciona sufixo específico
+    sufix += '/' + input.sufix;  // Add specific suffix
   }
 
   const middlewares: RouteHandler[] = [...args, ...this._defaultMiddlewares];
@@ -72,47 +72,47 @@ defineHandler(input: DefineHandlerInput, ...args: RouteHandler[]): this {
 }
 ```
 
-**Responsabilidade**: Define um handler para um método HTTP específico, com sufixo opcional.
+**Responsibility**: Defines a handler for a specific HTTP method, with optional suffix.
 
 ### DefineHandlerInput
 
 ```typescript
 interface DefineHandlerInput {
   method: keyof typeof HttpMethod;  // GET, POST, PUT, PATCH, DELETE
-  sufix?: string;                   // Sufixo opcional (ex: ":id")
+  sufix?: string;                   // Optional suffix (ex: ":id")
 }
 ```
 
-### Lógica de Expansão
+### Expansion Logic
 
-| Chamada | Sufixo Base | input.sufix | Rota Final |
+| Call | Base Suffix | input.sufix | Final Route |
 |---------|-------------|-------------|------------|
 | `defineHandler({method: POST})` | `"message"` | `undefined` | `/message` |
 | `defineHandler({method: GET, sufix: ":id"})` | `"message"` | `":id"` | `/message/:id` |
 | `defineHandler({method: GET, sufix: "list"})` | `"message"` | `"list"` | `/message/list` |
 
-### Middlewares Combinados
+### Combined Middlewares
 
 ```typescript
 const middlewares: RouteHandler[] = [...args, ...this._defaultMiddlewares];
 ```
 
-1. Primeiro: middlewares passados no `defineHandler()`
-2. Depois: middlewares padrão do recurso (via `defaultMiddlewares()`)
+1. First: middlewares passed in `defineHandler()`
+2. Then: default middlewares of the resource (via `defaultMiddlewares()`)
 
-**Exemplo**:
+**Example**:
 ```typescript
 app.resource("message")
-  .defaultMiddlewares(logMiddleware)  // Adiciona log
+  .defaultMiddlewares(logMiddleware)  // Add logging
   .defineHandler({method: GET}, authMiddleware, handler);
-  
-// Ordem de execução:
-// 1. authMiddleware (passado no defineHandler)
+   
+// Execution order:
+// 1. authMiddleware (passed in defineHandler)
 // 2. logMiddleware (defaultMiddlewares)
 // 3. handler
 ```
 
-### Chamada Dinâmica ao Método HTTP
+### Dynamic HTTP Method Call
 
 ```typescript
 this[input.method.toLowerCase() as 'get' | 'post' | 'patch' | 'put' | 'delete'](
@@ -121,7 +121,7 @@ this[input.method.toLowerCase() as 'get' | 'post' | 'patch' | 'put' | 'delete'](
 );
 ```
 
-Converte o enum para minúsculas e chama o método correspondente:
+Converts enum to lowercase and calls the corresponding method:
 - `HttpMethod.GET` → `"get"` → `this.get()`
 - `HttpMethod.POST` → `"post"` → `this.post()`
 - etc.
@@ -137,9 +137,9 @@ defaultMiddlewares(...args: RouteHandler[]): this {
 }
 ```
 
-**Responsabilidade**: Adiciona middlewares que serão aplicados a todos os handlers deste recurso.
+**Responsibility**: Adds middlewares that will be applied to all handlers of this resource.
 
-**Uso**:
+**Usage**:
 ```typescript
 app.resource("message")
   .defaultMiddlewares(authMiddleware, logMiddleware)
@@ -147,16 +147,16 @@ app.resource("message")
   .defineHandler({method: POST}, handler2);
 ```
 
-**Comportamento**:
-- Middlewares são armazenados em `_defaultMiddlewares`
-- São executados após middlewares específicos, antes do handler
-- Retorno `this` para chainable API
+**Behavior**:
+- Middlewares are stored in `_defaultMiddlewares`
+- They are executed after specific middlewares, before the handler
+- Returns `this` for chainable API
 
 ---
 
-## Interação com Routes
+## Interaction with Routes
 
-### Herança
+### Inheritance
 
 ```typescript
 export class Resource extends Routes {
@@ -164,7 +164,7 @@ export class Resource extends Routes {
 }
 ```
 
-`Resource` herda todos os métodos de `Routes`:
+`Resource` inherits all methods from `Routes`:
 - `get(sufix, ...handlers)`
 - `post(sufix, ...handlers)`
 - `put(sufix, ...handlers)`
@@ -173,11 +173,11 @@ export class Resource extends Routes {
 - `registerGlobalPrefix(prefix)`
 - `executeRequestCycle(...)`
 
-### Redefinição de Métodos
+### Method Redefinition
 
-`Resource` não redefine métodos de `Routes`. Ele **adiciona abstrações** sobre eles.
+`Resource` does not redefine methods from `Routes`. It **adds abstractions** over them.
 
-**Fluxo de Chamada**:
+**Call Flow**:
 ```
 Resource.defineHandler()
   ↓
@@ -192,9 +192,9 @@ Routes.routes.push()
 
 ---
 
-## Padrões de Uso
+## Usage Patterns
 
-### Recurso Simples
+### Simple Resource
 
 ```typescript
 app.resource("message")
@@ -202,11 +202,11 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.POST }, createHandler);
 ```
 
-**Resulta em**:
+**Results in**:
 - `GET /message` → `listHandler`
 - `POST /message` → `createHandler`
 
-### Recurso com Parâmetros
+### Resource with Parameters
 
 ```typescript
 app.resource("message")
@@ -215,12 +215,12 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.DELETE, sufix: ":id" }, deleteHandler);
 ```
 
-**Resulta em**:
+**Results in**:
 - `GET /message/:id` → `getHandler`
 - `PUT /message/:id` → `updateHandler`
 - `DELETE /message/:id` → `deleteHandler`
 
-### Recurso com Middlewares Padrão
+### Resource with Default Middlewares
 
 ```typescript
 app.resource("message")
@@ -229,12 +229,12 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.POST }, createHandler);
 ```
 
-**Ordem de execução**:
+**Execution order**:
 1. `authMiddleware`
 2. `logMiddleware`
 3. `listHandler` / `createHandler`
 
-### Recurso com Prefixo Global
+### Resource with Global Prefix
 
 ```typescript
 app.registerGlobalPrefix('api/v1');
@@ -243,9 +243,9 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.GET }, listHandler);
 ```
 
-**Rota resultante**: `GET /api/v1/message`
+**Resulting route**: `GET /api/v1/message`
 
-### Recurso Completo (CRUD)
+### Complete Resource (CRUD)
 
 ```typescript
 app.resource("message")
@@ -257,8 +257,9 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.DELETE, sufix: ":id" }, deleteHandler);
 ```
 
-**Resulta em**:
-| Método | Rota | Handler |
+**Results in**:
+
+| Method | Route | Handler |
 |--------|------|---------|
 | GET | `/message/:id` | `getHandler` |
 | GET | `/message` | `listHandler` |
@@ -268,9 +269,9 @@ app.resource("message")
 
 ---
 
-## Comparação: Direto vs Resource
+## Comparison: Direct vs Resource
 
-### Sem Resource (Direto)
+### Without Resource (Direct)
 
 ```typescript
 app.get("/message", listHandler);
@@ -280,12 +281,12 @@ app.put("/message/:id", updateHandler);
 app.delete("/message/:id", deleteHandler);
 ```
 
-**Problemas**:
-- Repetição do prefixo `/message`
-- Difícil adicionar middlewares globais ao recurso
-- Menos expressivo sobre a intenção (recurso RESTful)
+**Problems**:
+- Repetition of `/message` prefix
+- Difficult to add global middlewares to resource
+- Less expressive about intention (RESTful resource)
 
-### Com Resource
+### With Resource
 
 ```typescript
 app.resource("message")
@@ -297,31 +298,31 @@ app.resource("message")
   .defineHandler({ method: HttpMethod.DELETE, sufix: ":id" }, deleteHandler);
 ```
 
-**Vantagens**:
-- Prefixo definido uma vez
-- Middlewares fáceis de adicionar
-- Mais expressivo e declarativo
+**Advantages**:
+- Prefix defined once
+- Easy to add middlewares
+- More expressive and declarative
 
 ---
 
-## Integração com Routes
+## Integration with Routes
 
-### Método herdados que funcionam com Resource
+### Inherited methods that work with Resource
 
-Como `Resource` estende `Routes`, todos os métodos de `Routes` estão disponíveis:
+Since `Resource` extends `Routes`, all `Routes` methods are available:
 
 ```typescript
 const r = new Resource();
 
-// Métodos diretos ainda funcionam
+// Direct methods still work
 r.get('/users', handler);
 
-// Mais comum: usar o Resource DSL
+// More common: use the Resource DSL
 r.resource("users")
   .defineHandler({ method: HttpMethod.GET }, listHandler);
 ```
 
-### Acesso ao array de rotas
+### Access to routes array
 
 ```typescript
 const r = new Resource();
@@ -336,12 +337,12 @@ const routes = r.getRoutes();  // [{ method: "GET", sufix: /users, ... }]
 const r = new Resource();
 r.registerGlobalPrefix('api/v1');
 
-r.get('/users', handler);  // Rota: /api/v1/users
+r.get('/users', handler);  // Route: /api/v1/users
 ```
 
 ---
 
-## Erros e Tratamento
+## Errors and Handling
 
 ### Invalid Method
 
@@ -352,15 +353,15 @@ if (!parsedMethod) {
 }
 ```
 
-**Dispara quando**:
-- `input.method` não é um dos métodos HTTP válidos
+**Fires when**:
+- `input.method` is not one of the valid HTTP methods
 
-**Correto**:
+**Correct**:
 ```typescript
 defineHandler({ method: HttpMethod.GET }, handler)  // ✅
 ```
 
-**Incorreto**:
+**Incorrect**:
 ```typescript
 defineHandler({ method: "INVALID" }, handler)  // ❌ Error
 ```
@@ -371,7 +372,7 @@ defineHandler({ method: "INVALID" }, handler)  // ❌ Error
 
 ### Chainable Methods
 
-Todos os métodos de `Resource` retornam `this`:
+All `Resource` methods return `this`:
 
 ```typescript
 resource(sufix: string): this
@@ -379,23 +380,23 @@ defineHandler(input, ...args): this
 defaultMiddlewares(...args): this
 ```
 
-**Permite**:
+**Allows**:
 ```typescript
 app.resource("message")
   .defaultMiddlewares(m1)
   .defineHandler({method: GET}, h1)
-  .defaultMiddlewares(m2)  // Pode chamar novamente
+  .defaultMiddlewares(m2)  // Can call again
   .defineHandler({method: POST}, h2);
 ```
 
-### Method Chaining com Routes
+### Method Chaining with Routes
 
 ```typescript
 app.resource("message")
   .defineHandler({ method: HttpMethod.GET }, handler);
 
-// Pode continuar com métodos de Routes
-app.registerGlobalPrefix("/api");  // Continua chain
+// Can continue with Routes methods
+app.registerGlobalPrefix("/api");  // Continue chain
 ```
 
 ---
@@ -404,29 +405,29 @@ app.registerGlobalPrefix("/api");  // Continua chain
 
 ### Middlewares Array
 
-Cada `defaultMiddlewares()` adiciona ao array:
+Each `defaultMiddlewares()` call adds to the array:
 ```typescript
 this._defaultMiddlewares.push(...args);
 ```
 
-**Impacto**:
-- Array cresce com cada chamada
-- Copiado em cada `defineHandler()`: `[...args, ...this._defaultMiddlewares]`
+**Impact**:
+- Array grows with each call
+- Copied in each `defineHandler()`: `[...args, ...this._defaultMiddlewares]`
 
-**Otimização possível**:
-- Usar reference ao invés de copy
-- Validar inputs antes de criar array
+**Possible optimization**:
+- Use reference instead of copy
+- Validate inputs before creating array
 
 ---
 
-## Resumo de Responsabilidades
+## Responsibility Summary
 
-| Responsabilidade | Métodos |
+| Responsibility | Methods |
 |-----------------|---------|
-| Definir sufixo base | `resource()` |
-| Definir handlers | `defineHandler()` |
-| Adicionar middlewares padrão | `defaultMiddlewares()` |
+| Define base suffix | `resource()` |
+| Define handlers | `defineHandler()` |
+| Add default middlewares | `defaultMiddlewares()` |
 
-**Padrão de Uso**: Fluent DSL para definição de recursos RESTful
+**Usage Pattern**: Fluent DSL for RESTful resource definition
 
-**Integração**: Estende `Routes`, usa seus métodos internamente
+**Integration**: Extends `Routes`, uses its methods internally

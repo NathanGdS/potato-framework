@@ -1,8 +1,8 @@
-# HttpMethod - Constantes de Métodos HTTP
+# HttpMethod - HTTP Method Constants
 
-## Visão Geral
+## Overview
 
-`HttpMethod` é um objeto constante que define os **métodos HTTP suportados** pelo framework. Ele fornece type safety e evita erros de typo ao definir rotas.
+`HttpMethod` is a constant object that defines the **HTTP methods supported** by the framework. It provides type safety and prevents typos when defining routes.
 
 ```typescript
 export const HttpMethod = {
@@ -16,17 +16,17 @@ export const HttpMethod = {
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 ```
 
-## Estrutura
+## Structure
 
-### Objetos de Métodos
+### Method Objects
 
-| Chave | Valor | Descrição |
+| Key | Value | Description |
 |-------|-------|-----------|
-| `GET` | `"GET"` | Método GET - ler recursos |
-| `POST` | `"POST"` | Método POST - criar recursos |
-| `PATCH` | `"PATCH"` | Método PATCH - atualizações parciais |
-| `PUT` | `"PUT"` | Método PUT - atualizações completas |
-| `DELETE` | `"DELETE"` | Método DELETE - deletar recursos |
+| `GET` | `"GET"` | GET method - read resources |
+| `POST` | `"POST"` | POST method - create resources |
+| `PATCH` | `"PATCH"` | PATCH method - partial updates |
+| `PUT` | `"PUT"` | PUT method - full updates |
+| `DELETE` | `"DELETE"` | DELETE method - delete resources |
 
 ### Type Alias
 
@@ -34,7 +34,7 @@ export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 ```
 
-**Resolução**:
+**Resolution**:
 ```typescript
 typeof HttpMethod = {
   GET: "GET",
@@ -49,9 +49,9 @@ keyof typeof HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
 ```
 
-## Uso no Framework
+## Usage in Framework
 
-### Em Routes
+### In Routes
 
 ```typescript
 // Routes.ts
@@ -78,7 +78,7 @@ export class Routes {
 }
 ```
 
-### Em Resource
+### In Resource
 
 ```typescript
 // Resource.ts
@@ -113,16 +113,16 @@ interface DefineHandlerInput {
 }
 ```
 
-**Uso**:
+**Usage**:
 ```typescript
 app.resource("message")
   .defineHandler({ method: HttpMethod.GET, sufix: ":id" }, handler)
   .defineHandler({ method: HttpMethod.POST }, handler);
 ```
 
-## Uso nos Exemplos
+## Usage in Examples
 
-### Rota Direta
+### Direct Route
 
 ```typescript
 import { SweetPotatoApp, HttpMethod } from '../SweetPotatoApp.mjs';
@@ -156,36 +156,36 @@ app.resource("message")
 app.listen(8000);
 ```
 
-## Vantagens do Uso de Constantes
+## Advantages of Using Constants
 
 ### Type Safety
 
-**Com constante**:
+**With constant**:
 ```typescript
-app.get('/users', handler);  // ✅ Seguro
-app.post('/users', handler); // ✅ Seguro
+app.get('/users', handler);  // ✅ Safe
+app.post('/users', handler); // ✅ Safe
 ```
 
-**Sem constante (string literal)**:
+**Without constant (string literal)**:
 ```typescript
 app.get('/users', handler);
-app.postst('/users', handler); // ❌ Erro de typo passa unnoticed
+app.postst('/users', handler); // ❌ Typo goes unnoticed
 ```
 
 ### Autocomplete
 
-IDEs podem fornecer autocomplete:
+IDEs can provide autocomplete:
 ```typescript
 app.get('/users', handler);
 app.post('/users', handler);
-app.put('/users', handler);     // Autocomplete disponível
+app.put('/users', handler);     // Autocomplete available
 app.patch('/users', handler);
 app.delete('/users', handler);
 ```
 
-### Refatoração Segura
+### Safe Refactoring
 
-Se um método HTTP for removido ou renomeado:
+If an HTTP method is removed or renamed:
 ```typescript
 // Before
 const HttpMethod = {
@@ -197,13 +197,13 @@ const HttpMethod = {
 const HttpMethod = {
   GET: "GET",
   POST: "POST",
-  PUT: "PUT",  // Novo método
+  PUT: "PUT",  // New method
 };
 ```
 
-Todos os usos são verificados pelo TypeScript.
+All usages are verified by TypeScript.
 
-## Comparação com Outros Frameworks
+## Comparison with Other Frameworks
 
 ### Express.js
 
@@ -213,7 +213,7 @@ app.get('/users', handler);
 app.post('/users', handler);
 app.put('/users', handler);
 
-// Potato - com constantes
+// Potato - with constants
 app.get('/users', handler);
 app.post('/users', handler);
 app.put('/users', handler);
@@ -227,21 +227,21 @@ app.get('/users', handler);
 app.post('/users', handler);
 app.put('/users', handler);
 
-// Potato - com constantes
+// Potato - with constants
 app.get('/users', handler);
 app.post('/users', handler);
 app.put('/users', handler);
 ```
 
-## Tipos Disponíveis
+## Available Types
 
-### HttpMethodType (exportado para uso externo)
+### HttpMethodType (exported for external use)
 
 ```typescript
 export type { HttpMethod as HttpMethodType } from './constants/index.js';
 ```
 
-**Uso no usuário**:
+**User usage**:
 ```typescript
 import type { HttpMethodType } from './package/index.mjs';
 
@@ -254,21 +254,21 @@ const method: HttpMethodType = 'GET';  // Type checked
 export type { HttpStatusCode as HttpStatusCodeType } from './constants/index.js';
 ```
 
-**Uso no usuário**:
+**User usage**:
 ```typescript
 import type { HttpStatusCodeType } from './package/index.mjs';
 
 const status: HttpStatusCodeType = 200;  // Type checked
 ```
 
-## Métodos HTTP Completos
+## Complete HTTP Methods
 
 ### GET
 
-**Propósito**: Recuperar informações
-**Body**: Não deve ter
-**Idempotente**: Sim
-**Cacheável**: Sim
+**Purpose**: Retrieve information
+**Body**: Should not have
+**Idempotent**: Yes
+**Cacheable**: Yes
 
 ```typescript
 app.get('/users/:id', (ctx) => {
@@ -279,10 +279,10 @@ app.get('/users/:id', (ctx) => {
 
 ### POST
 
-**Propósito**: Criar novo recurso
-**Body**: Opcional (geralmente tem)
-**Idempotente**: Não
-**Cacheável**: Não
+**Purpose**: Create new resource
+**Body**: Optional (usually has)
+**Idempotent**: No
+**Cacheable**: No
 
 ```typescript
 app.post('/users', (ctx) => {
@@ -293,10 +293,10 @@ app.post('/users', (ctx) => {
 
 ### PUT
 
-**Propósito**: Atualizar recurso completo
-**Body**: Obrigatório
-**Idempotente**: Sim
-**Cacheável**: Não
+**Purpose**: Full resource update
+**Body**: Required
+**Idempotent**: Yes
+**Cacheable**: No
 
 ```typescript
 app.put('/users/:id', (ctx) => {
@@ -308,10 +308,10 @@ app.put('/users/:id', (ctx) => {
 
 ### PATCH
 
-**Propósito**: Atualização parcial
-**Body**: Opcional (geralmente tem)
-**Idempotente**: Não (mas pode ser)
-**Cacheável**: Não
+**Purpose**: Partial update
+**Body**: Optional (usually has)
+**Idempotent**: No (but can be)
+**Cacheable**: No
 
 ```typescript
 app.patch('/users/:id', (ctx) => {
@@ -323,10 +323,10 @@ app.patch('/users/:id', (ctx) => {
 
 ### DELETE
 
-**Propósito**: Deletar recurso
-**Body**: Não deve ter
-**Idempotente**: Sim
-**Cacheável**: Não
+**Purpose**: Delete resource
+**Body**: Should not have
+**Idempotent**: Yes
+**Cacheable**: No
 
 ```typescript
 app.delete('/users/:id', (ctx) => {
@@ -335,22 +335,22 @@ app.delete('/users/:id', (ctx) => {
 });
 ```
 
-## Padrões de Uso
+## Usage Patterns
 
-### Uso Direto nas Rotas
+### Direct Usage in Routes
 
 ```typescript
 import { SweetPotato, HttpMethod } from '../SweetPotato.mjs';
 
 const app = new SweetPotato();
 
-app.get('/users', handler);  // Sem usar HttpMethod explicitamente
+app.get('/users', handler);  // Not using HttpMethod explicitly
 app.post('/users', handler);
 
 app.listen(8000);
 ```
 
-### Uso com Resource DSL
+### Usage with Resource DSL
 
 ```typescript
 import { SweetPotato, HttpMethod } from '../SweetPotato.mjs';
@@ -367,19 +367,19 @@ app.resource("users")
 app.listen(8000);
 ```
 
-### Verificação de Método
+### Method Verification
 
 ```typescript
-// Em middleware
+// In middleware
 const methodCheckMiddleware: RouteHandler = (ctx) => {
   const method = ctx.headers[':method'];
   
   if (method === HttpMethod.POST) {
-    // Lógica específica para POST
+    // POST-specific logic
   }
   
   if (method === HttpMethod.GET) {
-    // Lógica específica para GET
+    // GET-specific logic
   }
 };
 ```
@@ -392,34 +392,34 @@ const methodCheckMiddleware: RouteHandler = (ctx) => {
 defineHandler(input: DefineHandlerInput, ...args: RouteHandler[]): this {
   const parsedMethod = HttpMethod[input.method];
   if (!parsedMethod) {
-    throw new Error('Invalid method');  // ← Erro lançado aqui
+    throw new Error('Invalid method');  // ← Error thrown here
   }
   // ...
 }
 ```
 
-**Dispara quando**:
+**Fires when**:
 ```typescript
 app.resource("users")
   .defineHandler({ method: "INVALID" as any }, handler);  // Error: Invalid method
 ```
 
-**Correto**:
+**Correct**:
 ```typescript
 app.resource("users")
   .defineHandler({ method: HttpMethod.GET }, handler);  // ✅
 ```
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Tipo** | Object with `as const` |
+| Aspect | Implementation |
+|--------|---------------|
+| **Type** | Object with `as const` |
 | **Keys** | `GET`, `POST`, `PATCH`, `PUT`, `DELETE` |
 | **Values** | `"GET"`, `"POST"`, `"PATCH"`, `"PUT"`, `"DELETE"` |
 | **Type** | `"GET" \| "POST" \| "PATCH" \| "PUT" \| "DELETE"` |
 
-### Exportação
+### Export
 
 ```typescript
 // constants/index.ts
@@ -427,46 +427,45 @@ export { HttpMethod } from "./HttpMethod.constants.js";
 export type { HttpMethod as HttpMethodType } from "./HttpMethod.constants.js";
 ```
 
-### Importação
+### Import
 
 ```typescript
-// No usuário
+// In user code
 import { HttpMethod } from './package/index.mjs';
 
-// Uso
+// Usage
 app.get('/users', handler);
 app.post('/users', handler);
 ```
 
-### Vantagens
+### Advantages
 
-1. **Type Safety**: Erros de typo são detectados em compile time
-2. **Autocomplete**: IDEs fornecem autocomplete para métodos
-3. **Refatoração**: Mudanças em métodos são trackeadas pelo TypeScript
-4. **Consistência**: Todos os métodos usam a mesma constante
+1. **Type Safety**: Typo errors detected at compile time
+2. **Autocomplete**: IDEs provide autocomplete for methods
+3. **Refactoring**: Changes in methods are tracked by TypeScript
+4. **Consistency**: All methods use the same constant
 
-### Limitações
+### Limitations
 
-1. **Apenas métodos comuns**: Não inclui métodos como `HEAD`, `OPTIONS`, `TRACE`
-2. **Não extensível**: Para adicionar novos métodos, precisa modificar o framework
+1. **Only common methods**: Does not include methods like `HEAD`, `OPTIONS`, `TRACE`
+2. **Not extensible**: To add new methods, need to modify the framework
 
-### Extensibilidade
+### Extensibility
 
-Se necessário adicionar novos métodos:
+If needed to add new methods:
 ```typescript
-// Potencial expansão
+// Potential expansion
 const HttpMethod = {
   GET: "GET",
   POST: "POST",
   PUT: "PUT",
   PATCH: "PATCH",
   DELETE: "DELETE",
-  HEAD: "HEAD",   // Novo
-  OPTIONS: "OPTIONS",  // Novo
+  HEAD: "HEAD",   // New
+  OPTIONS: "OPTIONS",  // New
 } as const;
 ```
 
-Ou permitir string literals diretos:
+Or allow direct string literals:
 ```typescript
 app.custom('WEBHOOK', '/webhook', handler);  // Custom method
-```

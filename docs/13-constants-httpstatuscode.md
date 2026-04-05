@@ -1,8 +1,8 @@
-# HttpStatusCode - Constantes de Status HTTP
+# HttpStatusCode - HTTP Status Code Constants
 
-## Visão Geral
+## Overview
 
-`HttpStatusCode` é um objeto constante que define os **códigos de status HTTP** utilizados pelo framework. Ele fornece type safety e evita erros ao definir responses.
+`HttpStatusCode` is a constant object that defines the **HTTP status codes** used by the framework. It provides type safety and prevents errors when defining responses.
 
 ```typescript
 export const HttpStatusCode = {
@@ -15,16 +15,16 @@ export const HttpStatusCode = {
 export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode];
 ```
 
-## Estrutura
+## Structure
 
 ### Status Codes
 
-| Chave | Valor | Descrição |
+| Key | Value | Description |
 |-------|-------|-----------|
-| `SUCCESS` | `200` | Request bem-sucedido |
-| `CREATED` | `201` | Recurso criado |
-| `NOT_FOUND` | `404` | Recurso não encontrado |
-| `INTERNAL_SERVER_ERROR` | `500` | Erro interno do servidor |
+| `SUCCESS` | `200` | Successful request |
+| `CREATED` | `201` | Resource created |
+| `NOT_FOUND` | `404` | Resource not found |
+| `INTERNAL_SERVER_ERROR` | `500` | Internal server error |
 
 ### Type Alias
 
@@ -32,7 +32,7 @@ export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode
 export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode];
 ```
 
-**Resolução**:
+**Resolution**:
 ```typescript
 typeof HttpStatusCode = {
   SUCCESS: 200,
@@ -44,15 +44,15 @@ typeof HttpStatusCode = {
 type HttpStatusCode = 200 | 201 | 404 | 500
 ```
 
-## Uso no Framework
+## Usage in Framework
 
-### Em SweetPotato
+### In SweetPotato
 
 ```typescript
 // SweetPotato.ts
 finishRequest(code: number | undefined, message: unknown): void {
   try {
-    const statusCode = code ?? HttpStatusCode.SUCCESS;  // 200 por padrão
+    const statusCode = code ?? HttpStatusCode.SUCCESS;  // Default 200
     this.appRes!.writeHead(statusCode);
     this.appRes!.write(JSON.stringify(message));
     this.appRes!.end();
@@ -63,12 +63,12 @@ finishRequest(code: number | undefined, message: unknown): void {
 }
 ```
 
-**Comportamento**:
-- Se `code` é `undefined`: usa `HttpStatusCode.SUCCESS` (200)
-- Se `code` é `null`: usa `HttpStatusCode.SUCCESS` (200)
-- Se `code` é número: usa o número fornecido
+**Behavior**:
+- If `code` is `undefined`: uses `HttpStatusCode.SUCCESS` (200)
+- If `code` is `null`: uses `HttpStatusCode.SUCCESS` (200)
+- If `code` is number: uses the provided number
 
-### Em Routes (Error Handling)
+### In Routes (Error Handling)
 
 ```typescript
 // Routes.ts
@@ -99,14 +99,14 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-## Status Codes Disponíveis
+## Available Status Codes
 
 ### 2xx - Success
 
-| Código | Nome | Uso |
+| Code | Name | Usage |
 |--------|------|-----|
-| `200` | OK | Request bem-sucedido |
-| `201` | Created | Recurso criado (ex: POST) |
+| `200` | OK | Successful request |
+| `201` | Created | Resource created (ex: POST) |
 
 ```typescript
 // 200 OK
@@ -122,9 +122,9 @@ app.post('/users', (ctx) => {
 
 ### 4xx - Client Error
 
-| Código | Nome | Uso |
+| Code | Name | Usage |
 |--------|------|-----|
-| `404` | Not Found | Recurso não encontrado |
+| `404` | Not Found | Resource not found |
 
 ```typescript
 // 404 Not Found
@@ -135,9 +135,9 @@ app.get('/users/999', (ctx) => {
 
 ### 5xx - Server Error
 
-| Código | Nome | Uso |
+| Code | Name | Usage |
 |--------|------|-----|
-| `500` | Internal Server Error | Erro no servidor |
+| `500` | Internal Server Error | Server error |
 
 ```typescript
 // 500 Internal Server Error
@@ -150,9 +150,9 @@ app.get('/users', (ctx) => {
 });
 ```
 
-## Uso nos Exemplos
+## Usage in Examples
 
-### Exemplo Simples
+### Simple Example
 
 ```typescript
 import { SweetPotatoApp, HttpStatusCode } from '../SweetPotatoApp.mjs';
@@ -166,7 +166,7 @@ app.get('/health', (ctx) => {
 app.listen(8000);
 ```
 
-### Exemplo com Recurso
+### Example with Resource
 
 ```typescript
 import { SweetPotatoApp, HttpStatusCode } from '../SweetPotatoApp.mjs';
@@ -190,7 +190,7 @@ app.post('/users', (ctx) => {
 app.listen(8000);
 ```
 
-### Exemplo com Resource DSL
+### Example with Resource DSL
 
 ```typescript
 import { SweetPotatoApp, HttpMethod, HttpStatusCode } from '../SweetPotatoApp.mjs';
@@ -211,19 +211,19 @@ app.resource("message")
 app.listen(8000);
 ```
 
-## Status Code Completo (RFC 7231)
+## Complete Status Codes (RFC 7231)
 
 ### 1xx - Informational
 
-| Código | Nome | Status no Framework |
+| Code | Name | Status in Framework |
 |--------|------|---------------------|
-| 100 | Continue | Não implementado |
-| 101 | Switching Protocols | Não implementado |
-| 102 | Processing | Não implementado |
+| 100 | Continue | Not implemented |
+| 101 | Switching Protocols | Not implemented |
+| 102 | Processing | Not implemented |
 
 ### 2xx - Success
 
-| Código | Nome | Implementado |
+| Code | Name | Implemented |
 |--------|------|--------------|
 | 200 | OK | ✅ `SUCCESS` |
 | 201 | Created | ✅ `CREATED` |
@@ -238,7 +238,7 @@ app.listen(8000);
 
 ### 3xx - Redirection
 
-| Código | Nome | Status no Framework |
+| Code | Name | Status in Framework |
 |--------|------|---------------------|
 | 300 | Multiple Choices | ❌ |
 | 301 | Moved Permanently | ❌ |
@@ -252,7 +252,7 @@ app.listen(8000);
 
 ### 4xx - Client Error
 
-| Código | Nome | Implementado |
+| Code | Name | Implemented |
 |--------|------|--------------|
 | 400 | Bad Request | ❌ |
 | 401 | Unauthorized | ❌ |
@@ -284,7 +284,7 @@ app.listen(8000);
 
 ### 5xx - Server Error
 
-| Código | Nome | Implementado |
+| Code | Name | Implemented |
 |--------|------|--------------|
 | 500 | Internal Server Error | ✅ `INTERNAL_SERVER_ERROR` |
 | 501 | Not Implemented | ❌ |
@@ -298,7 +298,7 @@ app.listen(8000);
 | 510 | Not Extended | ❌ |
 | 511 | Network Auth Required | ❌ |
 
-## Erros e Tratamento
+## Errors and Handling
 
 ### RouteNotFoundException
 
@@ -307,7 +307,7 @@ app.listen(8000);
 async executeRequestCycle(...): Promise<void> {
   const routeIndex = this.getRouteIndex(path, method);
   if (routeIndex < 0) {
-    throw new RouteNotFoundException();  // ← Lança exception
+    throw new RouteNotFoundException();  // ← Throws exception
   }
   // ...
 }
@@ -322,7 +322,7 @@ private async handleRoute(): Promise<void> {
         message: (error as Error).message,
       });
     }
-    // Outros erros → 500
+    // Other errors → 500
     return this.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, {
       message: (error as Error).message,
     });
@@ -330,11 +330,11 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-**Fluxo**:
-1. `Routes.executeRequestCycle()` → não encontra rota → `throw RouteNotFoundException`
-2. `SweetPotato.handleRoute()` → catch → verifica tipo → `finishRequest(HttpStatusCode.NOT_FOUND, ...)`
+**Flow**:
+1. `Routes.executeRequestCycle()` → doesn't find route → `throw RouteNotFoundException`
+2. `SweetPotato.handleRoute()` → catch → checks type → `finishRequest(HttpStatusCode.NOT_FOUND, ...)`
 
-### Error Genérico
+### Generic Error
 
 ```typescript
 // SweetPotato.ts
@@ -342,7 +342,7 @@ private async handleRoute(): Promise<void> {
   try {
     return await this.executeRequestCycle(...);
   } catch (error) {
-    // Qualquer erro que não seja RouteNotFoundException
+    // Any error that's not RouteNotFoundException
     return this.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, {  // 500
       message: (error as Error).message,
     });
@@ -350,15 +350,15 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-**Cenários**:
-- Erro em handler (síncrono ou async)
-- Erro em middleware
-- Erro de parsing do body
-- Qualquer outra exception não tratada
+**Scenarios**:
+- Error in handler (sync or async)
+- Error in middleware
+- Body parsing error
+- Any other unhandled exception
 
-## Padrões de Uso
+## Usage Patterns
 
-### Sucesso Simples (200)
+### Simple Success (200)
 
 ```typescript
 app.get('/health', (ctx) => {
@@ -366,7 +366,7 @@ app.get('/health', (ctx) => {
 });
 ```
 
-### Recurso Criado (201)
+### Resource Created (201)
 
 ```typescript
 app.post('/users', (ctx) => {
@@ -375,7 +375,7 @@ app.post('/users', (ctx) => {
 });
 ```
 
-### Recurso Não Encontrado (404)
+### Resource Not Found (404)
 
 ```typescript
 app.get('/users/:id', (ctx) => {
@@ -388,7 +388,7 @@ app.get('/users/:id', (ctx) => {
 });
 ```
 
-### Erro do Servidor (500)
+### Server Error (500)
 
 ```typescript
 app.get('/data', (ctx) => {
@@ -403,7 +403,7 @@ app.get('/data', (ctx) => {
 });
 ```
 
-### Middleware de Validação
+### Validation Middleware
 
 ```typescript
 const validateUserMiddleware: RouteHandler = (ctx) => {
@@ -421,11 +421,11 @@ const validateUserMiddleware: RouteHandler = (ctx) => {
     return;
   }
   
-  // Continue - não chama finishRequest
+  // Continue - does not call finishRequest
 };
 ```
 
-### Handler Assíncrono
+### Async Handler
 
 ```typescript
 const getUserHandler: RouteHandler = async (ctx) => {
@@ -448,7 +448,7 @@ const getUserHandler: RouteHandler = async (ctx) => {
 
 ## Type Safety
 
-### Com Type Alias
+### With Type Alias
 
 ```typescript
 import type { HttpStatusCodeType } from './package/index.mjs';
@@ -462,7 +462,7 @@ const code: HttpStatusCodeType = 500;  // ✅
 const code: HttpStatusCodeType = 300;  // ❌
 ```
 
-### Com Constante Direta
+### With Constant Directly
 
 ```typescript
 import { HttpStatusCode } from './package/index.mjs';
@@ -473,7 +473,7 @@ app.finishRequest(HttpStatusCode.NOT_FOUND, data);   // ✅ 404
 app.finishRequest(HttpStatusCode.INTERNAL_SERVER_ERROR, data);  // ✅ 500
 ```
 
-## Diferença entre HttpStatusCodeType e number
+## Difference between HttpStatusCodeType and number
 
 ### HttpStatusCodeType
 
@@ -484,49 +484,49 @@ const code: HttpStatusCodeType = 200;  // ✅
 const code: HttpStatusCodeType = 300;  // ❌
 ```
 
-### number (mais amplo)
+### number (broader)
 
 ```typescript
 const code: number = 200;  // ✅
 const code: number = 300;  // ✅
-const code: number = 999;  // ✅ (mas não é HTTP status válido)
+const code: number = 999;  // ✅ (but not valid HTTP status)
 ```
 
-### Uso na Function
+### Usage in Function
 
 ```typescript
-// Na definição da função
+// In function definition
 finishRequest(code: number | undefined, message: unknown): void {
   const statusCode = code ?? HttpStatusCode.SUCCESS;
   // ...
 }
 
-// O parâmetro aceita:
-app.finishRequest(undefined, data);     // usa SUCCESS (200)
+// The parameter accepts:
+app.finishRequest(undefined, data);     // uses SUCCESS (200)
 app.finishRequest(200, data);           // ✅ number literal
 app.finishRequest(HttpStatusCode.SUCCESS, data);  // ✅ HttpStatusCodeType
-app.finishRequest(300, data);           // ✅ number literal (mas não ideal)
+app.finishRequest(300, data);           // ✅ number literal (but not ideal)
 ```
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Tipo** | Object with `as const` |
+| Aspect | Implementation |
+|--------|---------------|
+| **Type** | Object with `as const` |
 | **Status Codes** | `SUCCESS`, `CREATED`, `NOT_FOUND`, `INTERNAL_SERVER_ERROR` |
 | **Values** | `200`, `201`, `404`, `500` |
 | **Type** | `200 \| 201 \| 404 \| 500` |
 
-### Status Codes Implementados
+### Implemented Status Codes
 
-| Status | Código | Nome | Uso |
+| Status | Code | Name | Usage |
 |--------|--------|------|-----|
-| SUCCESS | 200 | OK | Request bem-sucedido |
-| CREATED | 201 | Created | Recurso criado |
-| NOT_FOUND | 404 | Not Found | Recurso não encontrado |
-| INTERNAL_SERVER_ERROR | 500 | Internal Server Error | Erro no servidor |
+| SUCCESS | 200 | OK | Successful request |
+| CREATED | 201 | Created | Resource created |
+| NOT_FOUND | 404 | Not Found | Resource not found |
+| INTERNAL_SERVER_ERROR | 500 | Internal Server Error | Server error |
 
-### Uso na Function FinishRequest
+### Usage in finishRequest Function
 
 ```typescript
 finishRequest(code: number | undefined, message: unknown): void {
@@ -537,46 +537,46 @@ finishRequest(code: number | undefined, message: unknown): void {
 }
 ```
 
-**Padrões**:
+**Patterns**:
 - `code = undefined` → `200`
 - `code = 200` → `200`
 - `code = HttpStatusCode.SUCCESS` → `200`
 - `code = HttpStatusCode.NOT_FOUND` → `404`
 
-### Vantagens
+### Advantages
 
-1. **Type Safety**: Erros de typo são detectados em compile time
-2. **Autocomplete**: IDEs fornecem autocomplete para status codes
-3. **Readability**: `HttpStatusCode.SUCCESS` é mais legível que `200`
-4. **Maintainability**: Fácil adicionar novos status codes
+1. **Type Safety**: Typo errors detected at compile time
+2. **Autocomplete**: IDEs provide autocomplete for status codes
+3. **Readability**: `HttpStatusCode.SUCCESS` is more readable than `200`
+4. **Maintainability**: Easy to add new status codes
 
-### Limitações
+### Limitations
 
-1. **Apenas alguns status codes**: Não inclui todos os RFC 7231
-2. **Não extensível pelo usuário**: Para adicionar, precisa modificar o framework
+1. **Only some status codes**: Does not include all RFC 7231
+2. **Not extensible by user**: To add, need to modify the framework
 
-### Alternativas
+### Alternatives
 
-**Permitir string literals**:
+**Allow string literals**:
 ```typescript
 app.finishRequest('200', data);  // Direct number
 ```
 
-**Mais status codes**:
+**More status codes**:
 ```typescript
 export const HttpStatusCode = {
   SUCCESS: 200,
   CREATED: 201,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
-  BAD_REQUEST: 400,      // Novo
-  UNAUTHORIZED: 401,     // Novo
-  FORBIDDEN: 403,        // Novo
+  BAD_REQUEST: 400,      // New
+  UNAUTHORIZED: 401,     // New
+  FORBIDDEN: 403,        // New
   // ...
 } as const;
 ```
 
-## Padrões de Uso no Framework
+## Usage Patterns in Framework
 
 ### SweetPotato.handleRoute()
 
@@ -621,4 +621,4 @@ const requestCycleObject: HandlerContext = Object.freeze({
 return await route.requestCycle.executeRequestCycle(requestCycleObject);
 ```
 
-**Erros são tratados em SweetPotato**, não em Routes.
+**Errors are handled in SweetPotato**, not in Routes.

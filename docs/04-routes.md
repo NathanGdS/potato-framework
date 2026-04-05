@@ -1,8 +1,8 @@
-# Routes - Engine de Roteamento
+# Routes - Routing Engine
 
-## Visão Geral
+## Overview
 
-`Routes` é a engine de roteamento do framework. Ela armazena todas as rotas, realiza o match entre requisição e rota, e executa o pipeline de handlers.
+`Routes` is the routing engine of the framework. It stores all routes, performs matching between request and route, and executes the handler pipeline.
 
 ```typescript
 interface Route {
@@ -21,30 +21,30 @@ export class Routes {
 }
 ```
 
-## Estrutura de Dados
+## Data Structure
 
 ### Route Interface
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |-------|------|-----------|
-| `method` | `string` | Método HTTP (GET, POST, etc.) |
-| `originalSufix` | `string` | Caminho original (ex: `/users/:id`) |
-| `sufix` | `RegExp` | Regex compilada para match |
-| `params` | `Record<string, string> \| null` | Parâmetros extraídos do path |
+| `method` | `string` | HTTP method (GET, POST, etc.) |
+| `originalSufix` | `string` | Original path (ex: `/users/:id`) |
+| `sufix` | `RegExp` | Compiled regex for matching |
+| `params` | `Record<string, string> \| null` | Parameters extracted from path |
 | `queries` | `Record<string, string> \| null` | Query parameters |
-| `requestCycle` | `RequestCycle` | Handlers associados à rota |
+| `requestCycle` | `RequestCycle` | Handlers associated with route |
 
 ### Routes State
 
-| Atributo | Tipo | Descrição |
+| Attribute | Type | Description |
 |----------|------|-----------|
-| `routes` | `Route[]` | Array de todas as rotas registradas |
-| `globalPrefix` | `string \| undefined` | Prefixo global (ex: `/api/v1`) |
-| `alias` | `string` | Nome para logs (default: `RouteHandler`) |
+| `routes` | `Route[]` | Array of all registered routes |
+| `globalPrefix` | `string \| undefined` | Global prefix (ex: `/api/v1`) |
+| `alias` | `string` | Name for logs (default: `RouteHandler`) |
 
 ---
 
-## Métodos de Registro de Rotas
+## Route Registration Methods
 
 ### get(sufix, ...handlers)
 
@@ -86,7 +86,7 @@ delete(sufix: string, ...args: RouteHandler[]): void {
 }
 ```
 
-**Padrão**: Todos os métodos HTTP usam `createRequestCycle()` internamente.
+**Pattern**: All HTTP methods use `createRequestCycle()` internally.
 
 ---
 
@@ -95,15 +95,15 @@ delete(sufix: string, ...args: RouteHandler[]): void {
 ```typescript
 private createRequestCycle(sufix: string, httpMethod: string, ...args: RouteHandler[]): void {
   const requestCycle = new RequestCycle();
-  requestCycle.addMultiples(args);                     // Adiciona handlers
+  requestCycle.addMultiples(args);                     // Add handlers
   this.createRoute(httpMethod, sufix, requestCycle.getAllHandlers());
 }
 ```
 
-**Passos**:
-1. Cria novo `RequestCycle`
-2. Adiciona todos os handlers
-3. Chama `createRoute()` para criar a rota
+**Steps**:
+1. Creates new `RequestCycle`
+2. Adds all handlers
+3. Calls `createRoute()` to create the route
 
 ---
 
@@ -112,33 +112,33 @@ private createRequestCycle(sufix: string, httpMethod: string, ...args: RouteHand
 ```typescript
 private createRoute(method: string, sufix: string, handlers: RouteHandler[]): void {
   if (sufix.at(0) !== '/') {
-    sufix = '/' + sufix;                               // Garante prefixo /
+    sufix = '/' + sufix;                               // Ensure / prefix
   }
-  sufix = (this.globalPrefix ?? '') + sufix;           // Adiciona prefixo global
+  sufix = (this.globalPrefix ?? '') + sufix;           // Add global prefix
 
   const newRoute: Route = {
     method,
     originalSufix: sufix,
-    sufix: buildRoutePath(sufix),                      // Compila regex
+    sufix: buildRoutePath(sufix),                      // Compile regex
     params: null,
     queries: null,
-    requestCycle: new RequestCycle(handlers),         // Cria cycle com handlers
+    requestCycle: new RequestCycle(handlers),         // Create cycle with handlers
   };
   
   LoggerInstance().registerRoute(newRoute.method, newRoute.originalSufix, this.alias);
-  this.routes.push(newRoute);                          // Adiciona ao array
+  this.routes.push(newRoute);                          // Add to array
 }
 ```
 
-**Passos**:
-1. Normaliza sufixo (adiciona `/` se necessário)
-2. Adiciona prefixo global (ex: `/api/v1`)
-3. Compila regex com `buildRoutePath()`
-4. Cria rota
-5. Registra log
-6. Adiciona ao array de rotas
+**Steps**:
+1. Normalize suffix (add `/` if needed)
+2. Add global prefix (ex: `/api/v1`)
+3. Compile regex with `buildRoutePath()`
+4. Create route
+5. Register log
+6. Add to routes array
 
-### buildRoutePath() - Compilação de Regex
+### buildRoutePath() - Regex Compilation
 
 ```typescript
 export function buildRoutePath(path: string): RegExp {
@@ -150,17 +150,17 @@ export function buildRoutePath(path: string): RegExp {
 }
 ```
 
-**Exemplos de Compilação**:
+**Compilation Examples**:
 
-| Path Original | Regex Resultante |
+| Original Path | Resulting Regex |
 |---------------|------------------|
 | `/users` | `^/users(?<query>\?.*)?$` |
 | `/users/:id` | `^/users/(?<$1>[a-z0-9\\-_]+)(?<query>\?.*)?$` |
 | `/users/:userId/posts/:postId` | `^/users/(?<$1>[a-z0-9\\-_]+)/(?<posts>[a-z0-9\\-_]+)(?<query>\?.*)?$` |
 
 **Named Groups**:
-- `(?<id>[a-z0-9\\-_]+)` - captura `:id` como grupo nomeado `id`
-- `(?<query>\\?.*)` - captura query string como grupo nomeado `query`
+- `(?<id>[a-z0-9\\-_]+)` - captures `:id` as named group `id`
+- `(?<query>\\?.*)` - captures query string as named group `query`
 
 ---
 
@@ -179,17 +179,17 @@ registerGlobalPrefix(prefix: string): void {
 }
 ```
 
-**Comportamento**:
-- Se prefixo não começa com `/`, adiciona
-- Registra log
-- Armazena prefixo
+**Behavior**:
+- If prefix doesn't start with `/`, adds it
+- Registers log
+- Stores prefix
 
-**Exemplo**:
+**Example**:
 ```typescript
-app.registerGlobalPrefix('api/v1');  // Prefixo: "/api/v1"
+app.registerGlobalPrefix('api/v1');  // Prefix: "/api/v1"
 
-// Rota: app.get('/users', handler)
-// Resultado: "/api/v1/users"
+// Route: app.get('/users', handler)
+// Result: "/api/v1/users"
 ```
 
 ---
@@ -225,12 +225,12 @@ async executeRequestCycle(
 }
 ```
 
-**Fluxo**:
-1. Encontra índice da rota com `getRouteIndex()`
-2. Se não encontrada: lança `RouteNotFoundException`
-3. Extrai params e queries da rota encontrada
-4. Cria `HandlerContext` congelado (`Object.freeze`)
-5. Executa `RequestCycle.execute()`
+**Flow**:
+1. Finds route index with `getRouteIndex()`
+2. If not found: throws `RouteNotFoundException`
+3. Extracts params and queries from found route
+4. Creates frozen `HandlerContext` (`Object.freeze`)
+5. Executes `RequestCycle.execute()`
 
 ---
 
@@ -252,24 +252,24 @@ private getRouteIndex(path: string, method: string): number {
 }
 ```
 
-**Lógica de Match**:
+**Matching Logic**:
 
-1. **Executa regex**:
+1. **Execute regex**:
    ```javascript
    e.sufix.exec(path)  // Ex: /^/users/(?<id>[a-z0-9\-_]+)(?<query>\?.*)?$/.exec("/users/123")
    ```
 
-2. **Verifica método**:
+2. **Check method**:
    ```javascript
    if (e.method !== method) return false;
    ```
 
-3. **Verifica path exato**:
+3. **Check exact path**:
    ```javascript
-   if (regexVerifier.find((t) => t === path))  // Confirma match completo
+   if (regexVerifier.find((t) => t === path))  // Confirm full match
    ```
 
-4. **Extrai parâmetros**:
+4. **Extract parameters**:
    ```javascript
    e.params = getRouteParams(regexVerifier.groups);
    e.queries = getQueries(regexVerifier.groups?.['query']);
@@ -281,19 +281,19 @@ private getRouteIndex(path: string, method: string): number {
 export function getRouteParams(
   groups: Record<string, string>
 ): Record<string, string> | null {
-  const { query: _query, ...others } = groups;  // Remove grupo 'query'
+  const { query: _query, ...others } = groups;  // Remove 'query' group
   if (Object.keys(others).length === 0) return {};
   return others;
 }
 ```
 
-**Exemplo**:
+**Example**:
 ```javascript
 // Regex: /^/users/(?<id>[a-z0-9\-_]+)(?<query>\?.*)?$/
 // Path: "/users/123"
 // groups: { id: "123", query: undefined }
 
-// Resultado: { id: "123" }
+// Result: { id: "123" }
 ```
 
 ### getQueries(query)
@@ -309,10 +309,10 @@ export function getQueries(query: string | undefined | null): Record<string, str
 }
 ```
 
-**Exemplo**:
+**Example**:
 ```javascript
 // Input: "?foo=bar&baz=qux"
-// Resultado: { foo: "bar", baz: "qux" }
+// Result: { foo: "bar", baz: "qux" }
 ```
 
 ---
@@ -327,9 +327,9 @@ registerRoutes(routes: Route[]): void {
 }
 ```
 
-Permite registrar múltiplas rotas de uma vez. Útil para:
-- Carregar rotas de arquivo externo
-- Importar rotas de outro módulo
+Allows registering multiple routes at once. Useful for:
+- Loading routes from external file
+- Importing routes from another module
 
 ---
 
@@ -341,29 +341,29 @@ getRoutes(): Route[] {
 }
 ```
 
-Retorna todas as rotas registradas. Útil para:
+Returns all registered routes. Useful for:
 - Logs
 - Debugging
-- Middleware deinspeção
+- Inspection middleware
 
 ---
 
-## Resumo de Responsabilidades
+## Responsibility Summary
 
-| Responsabilidade | Métodos |
+| Responsibility | Methods |
 |-----------------|---------|
-| Registro de rotas | `get()`, `post()`, `put()`, `patch()`, `delete()` |
-| Criação de rotas | `createRoute()`, `createRequestCycle()` |
-| Match de rotas | `getRouteIndex()`, `executeRequestCycle()` |
-| Extração de params | `getRouteParams()`, `getQueries()` |
-| Prefixo global | `registerGlobalPrefix()` |
-| Inspeção | `getRoutes()`, `registerRoutes()` |
+| Route registration | `get()`, `post()`, `put()`, `patch()`, `delete()` |
+| Route creation | `createRoute()`, `createRequestCycle()` |
+| Route matching | `getRouteIndex()`, `executeRequestCycle()` |
+| Parameter extraction | `getRouteParams()`, `getQueries()` |
+| Global prefix | `registerGlobalPrefix()` |
+| Inspection | `getRoutes()`, `registerRoutes()` |
 
 ---
 
-## Padrões de Uso
+## Usage Patterns
 
-### Rota Simples
+### Simple Route
 
 ```typescript
 app.get('/users', (ctx) => {
@@ -372,7 +372,7 @@ app.get('/users', (ctx) => {
 });
 ```
 
-### Rota com Parâmetro
+### Route with Parameter
 
 ```typescript
 app.get('/users/:id', (ctx) => {
@@ -381,7 +381,7 @@ app.get('/users/:id', (ctx) => {
 });
 ```
 
-### Rota com Query String
+### Route with Query String
 
 ```typescript
 app.get('/users', (ctx) => {
@@ -390,15 +390,15 @@ app.get('/users', (ctx) => {
 });
 ```
 
-### Prefixo Global
+### Global Prefix
 
 ```typescript
 app.registerGlobalPrefix('api/v1');
 
-app.get('/users', handler);  // Rota: /api/v1/users
+app.get('/users', handler);  // Route: /api/v1/users
 ```
 
-### Múltiplos Handlers (Middleware)
+### Multiple Handlers (Middleware)
 
 ```typescript
 app.get('/users', authMiddleware, logMiddleware, (ctx) => {
@@ -408,15 +408,15 @@ app.get('/users', authMiddleware, logMiddleware, (ctx) => {
 
 ---
 
-## Erros e Tratamento
+## Errors and Handling
 
 ### RouteNotFoundException
 
-**Causa**: Nenhuma rota corresponde ao path + method
+**Cause**: No route matches path + method
 
-**Lançado em**: `executeRequestCycle()` quando `getRouteIndex()` retorna `-1`
+**Thrown in**: `executeRequestCycle()` when `getRouteIndex()` returns `-1`
 
-**Tratamento em `SweetPotato`**:
+**Handling in `SweetPotato`**:
 ```typescript
 try {
   return await this.executeRequestCycle(...);
@@ -436,41 +436,41 @@ try {
 
 ### Regex Compilation
 
-Cada rota tem sua regex compilada uma vez em `createRoute()`:
+Each route has its regex compiled once in `createRoute()`:
 ```typescript
-sufix: buildRoutePath(sufix)  // Compilada uma vez
+sufix: buildRoutePath(sufix)  // Compiled once
 ```
 
-A regex é reusada em `getRouteIndex()` para cada requisição:
+The regex is reused in `getRouteIndex()` for each request:
 ```typescript
-e.sufix.exec(path)  // Execução da regex compilada
+e.sufix.exec(path)  // Execute compiled regex
 ```
 
 ### Array.findIndex
 
-A busca linear no array de rotas tem complexidade O(n):
+Linear search in routes array has O(n) complexity:
 ```typescript
-this.routes.findIndex(...)  // O(n) onde n = número de rotas
+this.routes.findIndex(...)  // O(n) where n = number of routes
 ```
 
-Para grande número de rotas, considerar:
-- Trie de rotas
-- Map por método HTTP
+For large number of routes, consider:
+- Route trie
+- Map by HTTP method
 
 ---
 
-## Resumo Técnico
+## Technical Summary
 
-|Aspecto | Implementação |
+|Aspect | Implementation |
 |--------|---------------|
-| **Match Algorithm** | Regex exec com named groups |
+| **Match Algorithm** | Regex exec with named groups |
 | **Params Extraction** | Object destructuring + filtering |
 | **Query Parsing** | String split + reduce |
-| **Storage** | Array de objetos |
+| **Storage** | Array of objects |
 | **Search** | Linear search (findIndex) |
 | **Global Prefix** | String concatenation |
 
-**Complexidade**:
-- Registro: O(1) por rota
-- Match: O(n × m) onde n=rotas, m=comprimento do path
-- Memória: O(n) para armazenar rotas
+**Complexity**:
+- Registration: O(1) per route
+- Matching: O(n × m) where n=routes, m=path length
+- Memory: O(n) to store routes

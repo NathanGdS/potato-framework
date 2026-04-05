@@ -1,8 +1,8 @@
-# getRouteParams - Extração de Parâmetros de Rota
+# getRouteParams - Route Parameter Extraction
 
-## Visão Geral
+## Overview
 
-`getRouteParams` é um utilitário que **extrai apenas os parâmetros da rota** de um objeto de match regex, removendo o group especial `query` que é usado para query strings.
+`getRouteParams` is a utility that **extracts only the route parameters** from a regex match object, removing the special `query` group used for query strings.
 
 ```typescript
 export function getRouteParams(
@@ -14,41 +14,41 @@ export function getRouteParams(
 }
 ```
 
-## Propósito
+## Purpose
 
-Quando `buildRoutePath()` compila uma rota em regex, ele cria **dois tipos de named groups**:
+When `buildRoutePath()` compiles a route into regex, it creates **two types of named groups**:
 
-1. **Parâmetros da rota**: `:id` → `(?<id>[a-z0-9\\-_]+)`
+1. **Route parameters**: `:id` → `(?<id>[a-z0-9\\-_]+)`
 2. **Query string**: `(?<query>\\?.*)?`
 
-`getRouteParams()` remove o group `query` e retorna apenas os parâmetros da rota.
+`getRouteParams()` removes the `query` group and returns only the route parameters.
 
-## Lógica de Extração
+## Extraction Logic
 
-### Processo de Destructuring
+### Destructuring Process
 
 ```typescript
 const { query: _query, ...others } = groups;
 ```
 
-1. **Extração explícita**: `query` é extraído e renomeado para `_query` (variável descartável)
-2. **Rest**: `...others` captura todos os outros keys do objeto
+1. **Explicit extraction**: `query` is extracted and renamed to `_query` (discardable variable)
+2. **Rest**: `...others` captures all other keys of the object
 
-### Filtro de Empty Objects
+### Empty Object Filter
 
 ```typescript
 if (Object.keys(others).length === 0) return {};
 ```
 
-**Comportamento**:
-- Se não há outros groups além de `query`: retorna `{}` (não `null`)
-- Se há outros groups: retorna `others`
+**Behavior**:
+- If there are no other groups besides `query`: returns `{}` (not `null`)
+- If there are other groups: returns `others`
 
-**Nota**: O retorno é `{}` (objeto vazio), não `null`, quando não há parâmetros.
+**Note**: Returns `{}` (empty object), not `null`, when there are no parameters.
 
-## Exemplos de Uso
+## Usage Examples
 
-### Exemplo 1: Rota com Parâmetro
+### Example 1: Route with Parameter
 
 **Input**:
 ```typescript
@@ -56,12 +56,12 @@ const groups = { id: "123", query: undefined };
 const params = getRouteParams(groups);
 ```
 
-**Processo**:
+**Process**:
 1. Destructuring: `{ query: _query, ...others }`
    - `_query = undefined`
    - `others = { id: "123" }`
 2. Check `Object.keys(others)`: `[ "id" ]` → length = 1
-3. Retorna: `{ id: "123" }`
+3. Returns: `{ id: "123" }`
 
 **Output**:
 ```typescript
@@ -70,7 +70,7 @@ const params = getRouteParams(groups);
 
 ---
 
-### Exemplo 2: Rota sem Parâmetro
+### Example 2: Route without Parameter
 
 **Input**:
 ```typescript
@@ -78,12 +78,12 @@ const groups = { query: undefined };
 const params = getRouteParams(groups);
 ```
 
-**Processo**:
+**Process**:
 1. Destructuring: `{ query: _query, ...others }`
    - `_query = undefined`
-   - `others = {}` (vazio, não há outros keys)
+   - `others = {}` (empty, no other keys)
 2. Check `Object.keys(others)`: `[]` → length = 0
-3. Retorna: `{}`
+3. Returns: `{}`
 
 **Output**:
 ```typescript
@@ -92,7 +92,7 @@ const params = getRouteParams(groups);
 
 ---
 
-### Exemplo 3: Rota com Múltiplos Parâmetros
+### Example 3: Route with Multiple Parameters
 
 **Input**:
 ```typescript
@@ -104,12 +104,12 @@ const groups = {
 const params = getRouteParams(groups);
 ```
 
-**Processo**:
+**Process**:
 1. Destructuring: `{ query: _query, ...others }`
    - `_query = "?page=1"`
    - `others = { id: "123", userId: "456" }`
 2. Check: `Object.keys(others)` → `[ "id", "userId" ]`
-3. Retorna: `{ id: "123", userId: "456" }`
+3. Returns: `{ id: "123", userId: "456" }`
 
 **Output**:
 ```typescript
@@ -118,20 +118,20 @@ const params = getRouteParams(groups);
 
 ---
 
-### Exemplo 4: Path Sem Query String
+### Example 4: Path without Query String
 
 **Input**:
 ```typescript
-const groups = { id: "abc" };  // Sem key 'query'
+const groups = { id: "abc" };  // No 'query' key
 const params = getRouteParams(groups);
 ```
 
-**Processo**:
+**Process**:
 1. Destructuring: `{ query: _query, ...others }`
-   - `_query = undefined` (default do destructuring)
+   - `_query = undefined` (default from destructuring)
    - `others = { id: "abc" }`
 2. Check: `Object.keys(others)` → `[ "id" ]`
-3. Retorna: `{ id: "abc" }`
+3. Returns: `{ id: "abc" }`
 
 **Output**:
 ```typescript
@@ -140,7 +140,7 @@ const params = getRouteParams(groups);
 
 ---
 
-### Exemplo 5: Path Apenas com Query String
+### Example 5: Path with Query String Only
 
 **Input**:
 ```typescript
@@ -148,161 +148,161 @@ const groups = { query: "?page=1&limit=10" };
 const params = getRouteParams(groups);
 ```
 
-**Processo**:
+**Process**:
 1. Destructuring: `{ query: _query, ...others }`
    - `_query = "?page=1&limit=10"`
    - `others = {}`
-2. Check: `Object.keys(others)` → `[]` (vazio)
-3. Retorna: `{}`
+2. Check: `Object.keys(others)` → `[]` (empty)
+3. Returns: `{}`
 
 **Output**:
 ```typescript
 {}
 ```
 
-## Comparação: Com vs Sem getRouteParams
+## Comparison: With vs Without getRouteParams
 
-### Situação: Rota /users/:id
+### Situation: Route /users/:id
 
-**Sem getRouteParams**:
+**Without getRouteParams**:
 ```javascript
-// Groups retornado pelo regex exec:
+// Groups returned by regex exec:
 { id: "123", query: undefined }
 
-// Precisa filtrar manualmente:
+// Need to filter manually:
 const params = Object.fromEntries(
   Object.entries(groups).filter(([key]) => key !== 'query')
 );
 // { id: "123" }
 ```
 
-**Com getRouteParams**:
+**With getRouteParams**:
 ```javascript
-// Groups retornado pelo regex exec:
+// Groups returned by regex exec:
 { id: "123", query: undefined }
 
-// Uso direto:
+// Direct use:
 const params = getRouteParams(groups);
 // { id: "123" }
 ```
 
-## Integração com buildRoutePath
+## Integration with buildRoutePath
 
-### Fluxo Completo
+### Complete Flow
 
 ```typescript
 // 1. Build regex
 const routeRegex = buildRoutePath("/users/:id");
 // /^\/users\/(?<id>[a-z0-9\-_]+)(?<query>\?.*)?$/
 
-// 2. Executar no path
+// 2. Execute on path
 const regexVerifier = routeRegex.exec("/users/123?page=1");
 // { 
 //   0: "/users/123?page=1", 
 //   groups: { id: "123", query: "?page=1" } 
 // }
 
-// 3. Extrair parâmetros da rota
+// 3. Extract route parameters
 const params = getRouteParams(regexVerifier.groups);
 // { id: "123" }
 
-// 4. Extrair query parameters
+// 4. Extract query parameters
 const queries = getQueries(regexVerifier.groups?.['query']);
 // { page: "1" }
 ```
 
-## Integração com getQueries
+## Integration with getQueries
 
-### Divisão de Responsabilidades
+### Responsibility Division
 
-| Função | Responsabilidade | Input | Output |
+| Function | Responsibility | Input | Output |
 |--------|------------------|-------|--------|
-| `getRouteParams()` | Extrair parâmetros da rota | `groups` | `{ id: "123" }` |
-| `getQueries()` | Extrair query string | `query` string | `{ page: "1" }` |
+| `getRouteParams()` | Extract route parameters | `groups` | `{ id: "123" }` |
+| `getQueries()` | Extract query string | `query` string | `{ page: "1" }` |
 
-### Complementaridade
+### Complementarity
 
 ```typescript
-// getRouteParams remove 'query' do groups
+// getRouteParams removes 'query' from groups
 const { query: _query, ...others } = groups;
-// Retorna: { id: "123" }
+// Returns: { id: "123" }
 
-// getQueries processa a query string separadamente
+// getQueries processes query string separately
 getQueries("?page=1&limit=10");
-// Retorna: { page: "1", limit: "10" }
+// Returns: { page: "1", limit: "10" }
 ```
 
-## Tratamento de Casos Edge
+## Edge Case Handling
 
-### Edge Case 1: Groups Vazio
+### Edge Case 1: Empty Groups
 
 ```typescript
 const groups = {};
 const params = getRouteParams(groups);
 // { query: _query, ...others } → others = {}
 // Object.keys(others).length === 0 → true
-// Retorna: {}
+// Returns: {}
 ```
 
-### Edge Case 2: Groups com apenas undefined
+### Edge Case 2: Groups with only undefined
 
 ```typescript
 const groups = { query: undefined };
 const params = getRouteParams(groups);
 // others = {}
-// Retorna: {}
+// Returns: {}
 ```
 
-### Edge Case 3: Groups sem key 'query'
+### Edge Case 3: Groups without 'query' key
 
 ```typescript
 const groups = { id: "123" };
 const params = getRouteParams(groups);
 // { query: _query (default), ...others = { id: "123" } }
-// Retorna: { id: "123" }
+// Returns: { id: "123" }
 ```
 
-### Edge Case 4: Keys que não são parâmetros
+### Edge Case 4: Keys that are not parameters
 
-Se `buildRoutePath()` mudar e adicionar mais groups:
+If `buildRoutePath()` changes and adds more groups:
 ```typescript
 const groups = { id: "123", query: "?page=1", extra: "value" };
 const params = getRouteParams(groups);
 // { query: _query, ...others = { id: "123", extra: "value" } }
-// Retorna: { id: "123", extra: "value" }
+// Returns: { id: "123", extra: "value" }
 ```
 
-**Nota**: `getRouteParams()` **não filtra por tipo de key**. Filtra apenas removendo `query`.
+**Note**: `getRouteParams()` **does not filter by key type**. It only removes `query`.
 
 ## Performance Considerations
 
-### Complexidade
+### Complexity
 
-- **Time**: O(n) onde n = número de keys em `groups`
-- **Space**: O(n) para o objeto `others`
+- **Time**: O(n) where n = number of keys in `groups`
+- **Space**: O(n) for the `others` object
 
-### Operações
+### Operations
 
 1. Destructuring: O(n)
 2. Object.keys(): O(n)
-3. Return: O(1) (referência)
+3. Return: O(1) (reference)
 
-### Otimização Possível
+### Possible Optimization
 
-Se `groups` sempre tem apenas uma key `query` e o restante:
+If `groups` always has only one `query` key and the rest:
 ```typescript
-// Alternativa mais performática (mas menos legível)
+// More performant alternative (but less readable)
 export function getRouteParams(groups: Record<string, string>): Record<string, string> {
   if (Object.keys(groups).length <= 1) return {};
   // ...
 }
 ```
 
-**A implementação atual é suficiente** para o uso no framework.
+**Current implementation is sufficient** for framework usage.
 
-## Uso no Routes
+## Usage in Routes
 
-### Em getRouteIndex()
+### In getRouteIndex()
 
 ```typescript
 private getRouteIndex(path: string, method: string): number {
@@ -311,7 +311,7 @@ private getRouteIndex(path: string, method: string): number {
     if (!regexVerifier) return false;
     if (e.method !== method) return false;
     if (regexVerifier.find((t) => t === path)) {
-      e.params = getRouteParams(regexVerifier.groups as Record<string, string>);  // ← Uso
+      e.params = getRouteParams(regexVerifier.groups as Record<string, string>);  // ← Usage
       e.queries = getQueries(regexVerifier.groups?.['query']);
       return true;
     }
@@ -320,39 +320,39 @@ private getRouteIndex(path: string, method: string): number {
 }
 ```
 
-## Resumo
+## Summary
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Responsabilidade** | Filtrar parâmetros da rota |
+| Aspect | Implementation |
+|--------|---------------|
+| **Responsibility** | Filter route parameters |
 | **Input** | `Record<string, string>` |
-| **Output** | `Record<string, string>` ou `{}` |
-| **Filter** | Remove key `query` |
-| **Empty** | Retorna `{}` se não há outros keys |
+| **Output** | `Record<string, string>` or `{}` |
+| **Filter** | Remove `query` key |
+| **Empty** | Returns `{}` if no other keys |
 
-### Contrato de Retorno
+### Return Contract
 
-| Input | Output | Notas |
+| Input | Output | Notes |
 |-------|--------|-------|
-| `{ id: "1", query: "?" }` | `{ id: "1" }` | Parâmetro extraído |
-| `{ query: "?" }` | `{}` | Sem parâmetros |
-| `{ id: "1" }` | `{ id: "1" }` | Sem query |
-| `{}` | `{}` | Vazio |
+| `{ id: "1", query: "?" }` | `{ id: "1" }` | Parameter extracted |
+| `{ query: "?" }` | `{}` | No parameters |
+| `{ id: "1" }` | `{ id: "1" }` | No query |
+| `{}` | `{}` | Empty |
 
 ### Design Decisions
 
-1. **Return `{}` não `null`**: Para evitar null checks no caller
-2. **Destructuring**: Mais legível que loop manual
-3. **Não filter()**: Menos overhead que Array.filter()
+1. **Return `{}` not `null`**: To avoid null checks in caller
+2. **Destructuring**: More readable than manual loop
+3. **No filter()**: Less overhead than Array.filter()
 
-### Vantagens
+### Advantages
 
-- **Simples**: Uma linha de lógica principal
-- **Limpo**: Separa responsabilidades (parâmetros vs query)
-- **Predictável**: Comportamento conhecido
+- **Simple**: One line of main logic
+- **Clean**: Separates responsibilities (parameters vs query)
+- **Predictable**: Known behavior
 
-### Limitações
+### Limitations
 
-- **Nome fixo**: Dependente da key `query`
-- **Sem validação**: Não verifica se `query` é realmente a query string
-- **Sem type safety**: Recebe `Record<string, string>` genérico
+- **Fixed name**: Depends on `query` key
+- **No validation**: Doesn't verify if `query` is really the query string
+- **No type safety**: Takes generic `Record<string, string>`

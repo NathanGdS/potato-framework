@@ -1,66 +1,66 @@
-# Potato Framework - Documentação da Engine
+# Potato Framework - Engine Documentation
 
-Esta documentação técnica descreve o funcionamento interno da Potato Framework, uma lightweight HTTP server framework para Node.js escrita em ES Modules puro.
-
----
-
-## Sumário
-
-### 1. Visão Geral
-- [Introdução](./01-introducao.md) - Visão geral do framework e suas filosofias de design
-- [Arquitetura](./02-arquitetura.md) - Estrutura de classes e fluxo de dados
-
-### 2. Componentes Internos
-- [SweetPotato](./03-sweetpotato.md) - Classe principal do servidor HTTP
-- [Routes](./04-routes.md) - Engine de roteamento e gerenciamento de rotas
-- [Resource](./05-resource.md) - DSL para definição de recursos RESTful
-- [RequestCycle](./06-requestcycle.md) - Execução de middleware/handlers
-
-### 3. Utilitários e Helpers
-- [buildRoutePath](./07-utils-buildroutepath.md) - Compilação de rotas com Regex
-- [getRouteParams](./08-utils-getrouteparams.md) - Extração de parâmetros de rota
-- [getQueries](./09-utils-getqueries.md) - Parse de query parameters
-- [isPromise](./10-utils-ispromise.md) - Detecção de funções async
-
-### 4. Tipos e Constantes
-- [Tipos Base](./11-tipos-base.md) - HandlerContext, RouteHandler
-- [HttpMethod](./12-constants-httpmethod.md) - Constantes de métodos HTTP
-- [HttpStatusCode](./13-constants-httpstatuscode.md) - Constantes de status HTTP
-
-### 5. Tratamento de Erros
-- [RouteNotFoundException](./14-errors-routenotfound.md) - Erro de rota não encontrada
-
-### 6. Lifecycle e Fluxo
-- [Ciclo de Vida da Requisição](./15-lifecycle-request.md) - Fluxo completo de uma requisição HTTP
+This technical documentation describes the internal workings of Potato Framework, a lightweight HTTP server framework for Node.js written in pure ES Modules.
 
 ---
 
-## Conceitos-Chave
+## Table of Contents
 
-### Filosofia de Design
+### 1. Overview
+- [Introduction](./01-introducao.md) - Framework overview and design philosophies
+- [Architecture](./02-arquitetura.md) - Class structure and data flow
 
-1. **Zero Dependências Externas** - Usa apenas o módulo nativo `http` do Node.js
-2. **ES Modules Puro** - Sem build steps, TypeScript compilado ou bundlers
-3. **Immutability** - HandlerContext é `Object.freeze()` para prevenir mutações
-4. **Sequential Execution** - Handlers executam em ordem, sem `next()` - cada um chama `finishRequest()`
+### 2. Internal Components
+- [SweetPotato](./03-sweetpotato.md) - Main HTTP server class
+- [Routes](./04-routes.md) - Routing engine and route management
+- [Resource](./05-resource.md) - DSL for RESTful resource definition
+- [RequestCycle](./06-requestcycle.md) - Middleware/handler execution
 
-### Comparação com Frameworks Convencionais
+### 3. Utilities and Helpers
+- [buildRoutePath](./07-utils-buildroutepath.md) - Route compilation with Regex
+- [getRouteParams](./08-utils-getrouteparams.md) - Route parameter extraction
+- [getQueries](./09-utils-getqueries.md) - Query parameter parsing
+- [isPromise](./10-utils-ispromise.md) - Async function detection
 
-| Característica | Potato Framework | Express/Fastify |
-|---------------|------------------|-----------------|
-| Dependências | 0 (apenas Node.js) | Dúzias | 
-| Build Step | Não | Sim (TypeScript) |
-| next() middleware | Não | Sim |
-| Middlewares globais | Sim (Resource) | Sim |
+### 4. Types and Constants
+- [Base Types](./11-tipos-base.md) - HandlerContext, RouteHandler
+- [HttpMethod](./12-constants-httpmethod.md) - HTTP method constants
+- [HttpStatusCode](./13-constants-httpstatuscode.md) - HTTP status code constants
+
+### 5. Error Handling
+- [RouteNotFoundException](./14-errors-routenotfound.md) - Route not found error
+
+### 6. Lifecycle and Flow
+- [Request Lifecycle](./15-lifecycle-request.md) - Complete HTTP request flow
 
 ---
 
-## Como Esta Documentação Está Organizada
+## Key Concepts
 
-Esta documentação é **técnica e detalhada**, focada em:
+### Design Philosophy
 
-1. **Como as coisas funcionam** - Implementação interna
-2. **Por que foi feito assim** - Decisões de design
-3. **Como usar corretamente** - Padrões e contratos
+1. **Zero External Dependencies** - Uses only Node.js native `http` module
+2. **Pure ES Modules** - No build steps, compiled TypeScript, or bundlers
+3. **Immutability** - HandlerContext is `Object.freeze()` to prevent mutations
+4. **Sequential Execution** - Handlers run in order, no `next()` - each calls `finishRequest()`
 
-Para exemplos de uso, consulte a pasta `examples/` ou a README principal.
+### Comparison with Conventional Frameworks
+
+| Feature | Potato Framework | Express/Fastify |
+|---------|------------------|-----------------|
+| Dependencies | 0 (Node.js only) | Dozens |
+| Build Step | No | Yes (TypeScript) |
+| next() middleware | No | Yes |
+| Global middlewares | Yes (Resource) | Yes |
+
+---
+
+## How This Documentation is Organized
+
+This documentation is **technical and detailed**, focused on:
+
+1. **How things work** - Internal implementation
+2. **Why it was done this way** - Design decisions
+3. **How to use correctly** - Patterns and contracts
+
+For usage examples, see the `examples/` folder or the main README.

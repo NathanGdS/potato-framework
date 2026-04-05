@@ -1,74 +1,74 @@
-# Ciclo de Vida da Requisição
+# Request Lifecycle
 
-## Visão Geral
+## Overview
 
-Este documento descreve o **ciclo de vida completo de uma requisição HTTP** dentro do Potato Framework, desde a chegada da requisição até o envio da resposta.
+This document describes the **complete lifecycle of an HTTP request** within the Potato Framework, from request arrival to response sending.
 
-## Diagrama de Fluxo
+## Flow Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Client as Cliente
+    participant Client
     participant Server as Node.js HTTP Server
     participant SP as SweetPotato
     participant Routes as Routes Engine
     participant RC as RequestCycle
     participant Handler1 as Handler 1
     participant Handler2 as Handler 2
-    participant Response as Resposta HTTP
+    participant Response as HTTP Response
 
-    Note over Client,Response: Fase 1: Recebimento da Requisição
+    Note over Client,Response: Phase 1: Request Reception
     Client->>Server: HTTP Request (GET /users/123?page=1)
     
-    Note over Server,Response: Fase 2: Setup Inicial
+    Note over Server,Response: Phase 2: Initial Setup
     Server->>SP: createServer callback
     SP->>SP: defineGlobalAttributes(req, res)
     SP->>SP: defineBodyAttributes()
     
-    Note over Server,Response: Fase 3: Roteamento
+    Note over Server,Response: Phase 3: Routing
     SP->>Routes: executeRequestCycle(path, method, body, headers)
     Routes->>Routes: getRouteIndex(path, method)
-    Routes->>Routes: Regex match em cada rota
+    Routes->>Routes: Regex match on each route
     Routes->>Routes: getRouteParams() + getQueries()
     
-    alt Rota encontrada
+    alt Route found
         Routes->>Routes: routeIndex >= 0
         Routes->>RC: executeRequestCycle(ctx)
         
-        Note over Server,Response: Fase 4: Execução de Handlers
-        loop Para cada handler
+        Note over Server,Response: Phase 4: Handler Execution
+        loop For each handler
             RC->>Handler1: ctx
-            Handler1->>Handler1: Lógica (middleware)
+            Handler1->>Handler1: Logic (middleware)
             Handler1-->>RC: continue
             
             RC->>Handler2: ctx
-            Handler2->>Handler2: Lógica (handler)
+            Handler2->>Handler2: Logic (handler)
             Handler2->>Response: finishRequest(200, data)
         end
         
         Response-->>Client: HTTP Response (200 OK)
         
-    else Rota não encontrada
+    else Route not found
         Routes-->>SP: throw RouteNotFoundException
         SP->>SP: catch error
         SP->>Response: finishRequest(404, error.message)
         Response-->>Client: HTTP Response (404 Not Found)
     end
     
-    Note over Server,Response: Fase 5: Finalização
+    Note over Server,Response: Phase 5: Finalization
     Response->>Response: writableEnded check
-    Response-->>Client: HTTP Response final
+    Response-->>Client: Final HTTP Response
 ```
 
-## Fase 1: Recebimento da Requisição
+## Phase 1: Request Reception
 
-### Evento HTTP Server
+### HTTP Server Event
 
 ```typescript
 // SweetPotato.ts
 http
   .createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    // Início do ciclo de vida
+    // Start of lifecycle
     this.defineGlobalAttributes(req, res);
     await this.defineBodyAttributes();
     await this.handleRoute();
@@ -83,9 +83,9 @@ http
   });
 ```
 
-### Estado Inicial
+### Initial State
 
-No momento do callback:
+At callback time:
 ```typescript
 req: IncomingMessage {
   method: "GET",
@@ -101,11 +101,11 @@ res: ServerResponse {
 
 ---
 
-## Fase 2: Setup Inicial
+## Phase 2: Initial Setup
 
 ### defineGlobalAttributes(req, res)
 
-**Responsabilidade**: Capturar dados globais da requisição
+**Responsibility**: Capture global request data
 
 ```typescript
 private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void {
@@ -117,9 +117,9 @@ private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void 
 }
 ```
 
-**Atributos capturados**:
+**Captured attributes**:
 
-| Atributo | Fonte | Valor Exemplo |
+| Attribute | Source | Example Value |
 |----------|-------|----------------|
 | `appReq` | `req` | IncomingMessage |
 | `appRes` | `res` | ServerResponse |
@@ -131,7 +131,7 @@ private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void 
 
 ### defineBodyAttributes()
 
-**Responsabilidade**: Ler e parsear o body da requisição
+**Responsibility**: Read and parse request body
 
 ```typescript
 private async defineBodyAttributes(): Promise<void> {
@@ -147,24 +147,24 @@ private async defineBodyAttributes(): Promise<void> {
 }
 ```
 
-**Comportamento**:
+**Behavior**:
 
-1. Loop sobre chunks do body
-2. Concatena todos os buffers
-3. Parseia JSON
-4. Se body vazio: `dataBody = null`
+1. Loop over body chunks
+2. Concatenate all buffers
+3. Parse JSON
+4. If empty body: `dataBody = null`
 
-**Limitações**:
-- Apenas suporta JSON
-- Não há tratamento de erros de parse
+**Limitations**:
+- Only supports JSON
+- No parse error handling
 
 ---
 
-## Fase 3: Roteamento
+## Phase 3: Routing
 
 ### handleRoute()
 
-**Responsabilidade**: Encontrar e executar a rota correspondente
+**Responsibility**: Find and execute matching route
 
 ```typescript
 private async handleRoute(): Promise<void> {
@@ -188,17 +188,17 @@ private async handleRoute(): Promise<void> {
 }
 ```
 
-**Fluxo**:
+**Flow**:
 
-1. Chama `executeRequestCycle()` com path, method, body, headers
-2. Se `RouteNotFoundException`: 404
-3. Se outro erro: 500
+1. Calls `executeRequestCycle()` with path, method, body, headers
+2. If `RouteNotFoundException`: 404
+3. If other error: 500
 
 ---
 
 ### Routes.executeRequestCycle()
 
-**Responsabilidade**: Executar o pipeline de handlers da rota
+**Responsibility**: Execute handler pipeline of route
 
 ```typescript
 async executeRequestCycle(
@@ -227,18 +227,18 @@ async executeRequestCycle(
 }
 ```
 
-**Passos**:
+**Steps**:
 
-1. Chama `getRouteIndex(path, method)` para encontrar rota
-2. Se não encontrada: `throw RouteNotFoundException`
-3. Cria `HandlerContext` congelado
-4. Executa `RequestCycle.execute()`
+1. Calls `getRouteIndex(path, method)` to find route
+2. If not found: `throw RouteNotFoundException`
+3. Creates frozen `HandlerContext`
+4. Executes `RequestCycle.execute()`
 
 ---
 
 ### Routes.getRouteIndex(path, method)
 
-**Responsabilidade**: Encontrar índice da rota correspondente
+**Responsibility**: Find index of matching route
 
 ```typescript
 private getRouteIndex(path: string, method: string): number {
@@ -256,24 +256,24 @@ private getRouteIndex(path: string, method: string): number {
 }
 ```
 
-**Lógica de Match**:
+**Matching Logic**:
 
-1. **Executa regex da rota no path**
+1. **Execute route regex on path**
    ```typescript
    e.sufix.exec(path)  // /^\/users\/(?<id>[a-z0-9\-_]+)(?<query>\?.*)?$/.exec("/users/123")
    ```
 
-2. **Verifica método**
+2. **Check method**
    ```typescript
    if (e.method !== method) return false;
    ```
 
-3. **Verifica path completo**
+3. **Check full path**
    ```typescript
    if (regexVerifier.find((t) => t === path))
    ```
 
-4. **Extrai parâmetros e queries**
+4. **Extract parameters and queries**
    ```typescript
    e.params = getRouteParams(regexVerifier.groups);
    e.queries = getQueries(regexVerifier.groups?.['query']);
@@ -281,11 +281,11 @@ private getRouteIndex(path: string, method: string): number {
 
 ---
 
-## Fase 4: Execução de Handlers
+## Phase 4: Handler Execution
 
 ### RequestCycle.executeRequestCycle()
 
-**Responsabilidade**: Executar handlers em sequência
+**Responsibility**: Execute handlers in sequence
 
 ```typescript
 async executeRequestCycle(data: HandlerContext): Promise<void> {
@@ -293,24 +293,24 @@ async executeRequestCycle(data: HandlerContext): Promise<void> {
     const actualHandler = this.handlers[i];
     
     if (!isPromise(actualHandler)) {
-      actualHandler(data);  // Síncrono
+      actualHandler(data);  // Synchronous
     } else {
-      await actualHandler(data);  // Assíncrono
+      await actualHandler(data);  // Asynchronous
     }
   }
 }
 ```
 
-**Fluxo**:
+**Flow**:
 
-1. Loop sobre todos os handlers
-2. `isPromise()` detecta se handler é async
-3. Síncrono: chama diretamente
-4. Assíncrono: aguarda com `await`
+1. Loop over all handlers
+2. `isPromise()` detects if handler is async
+3. Synchronous: call directly
+4. Asynchronous: wait with `await`
 
 ### Handler Context
 
-O mesmo contexto é passado para todos os handlers:
+Same context is passed to all handlers:
 
 ```typescript
 interface HandlerContext {
@@ -321,16 +321,16 @@ interface HandlerContext {
 }
 ```
 
-**Exemplo de valores**:
+**Example values**:
 
 ```typescript
 // Request: GET /users/123?page=1
 
 const ctx: HandlerContext = Object.freeze({
-  body: null,                            // GET não tem body
-  params: { id: "123" },                // de buildRoutePath
-  headers: { host: "localhost:8000" },  // de defineGlobalAttributes
-  queries: { page: "1" },               // de getQueries
+  body: null,                            // GET has no body
+  params: { id: "123" },                // from buildRoutePath
+  headers: { host: "localhost:8000" },  // from defineGlobalAttributes
+  queries: { page: "1" },               // from getQueries
 });
 ```
 
@@ -338,24 +338,24 @@ const ctx: HandlerContext = Object.freeze({
 
 ### Handler Contract
 
-Cada handler deve:
+Each handler must:
 
-1. **Receber contexto**:
+1. **Receive context**:
    ```typescript
    const handler: RouteHandler = (ctx) => { ... }
    ```
 
-2. **Não mutar contexto** (immutabilidade):
+2. **Not mutate context** (immutability):
    ```typescript
-   // ❌ NÃO FAZER:
+   // ❌ DON'T DO:
    ctx.params.id = 'new-value';
    ```
 
-3. **Não chamar `next()`**:
-   - Handlers são executados em sequência
-   - Não há mecanismo de `next()`
+3. **Not call `next()`**:
+   - Handlers execute in sequence
+   - There's no `next()` mechanism
 
-4. **Chamar `app.finishRequest()`**:
+4. **Call `app.finishRequest()`**:
    ```typescript
    app.finishRequest(statusCode, data);
    ```
@@ -364,19 +364,19 @@ Cada handler deve:
 
 ## Handler Types
 
-### Handler Síncrono
+### Synchronous Handler
 
 ```typescript
 const syncHandler: RouteHandler = (ctx) => {
-  console.log('Handler síncrono');
+  console.log('Synchronous handler');
   app.finishRequest(200, { data: 'ok' });
 };
 
 // isPromise(syncHandler) = false
-// Execução: actualHandler(data)
+// Execution: actualHandler(data)
 ```
 
-### Handler Assíncrono
+### Asynchronous Handler
 
 ```typescript
 const asyncHandler: RouteHandler = async (ctx) => {
@@ -385,10 +385,10 @@ const asyncHandler: RouteHandler = async (ctx) => {
 };
 
 // isPromise(asyncHandler) = true (AsyncFunction)
-// Execução: await actualHandler(data)
+// Execution: await actualHandler(data)
 ```
 
-### Handler que Retorna Promise
+### Handler Returning Promise
 
 ```typescript
 const promiseHandler: RouteHandler = (ctx) => {
@@ -401,14 +401,14 @@ const promiseHandler: RouteHandler = (ctx) => {
 };
 
 // isPromise(promiseHandler) = true (instanceof Promise)
-// Execução: await actualHandler(data)
+// Execution: await actualHandler(data)
 ```
 
 ---
 
 ## Handler Chain Example
 
-### Com Middleware
+### With Middleware
 
 ```typescript
 const authMiddleware: RouteHandler = async (ctx) => {
@@ -417,12 +417,12 @@ const authMiddleware: RouteHandler = async (ctx) => {
     app.finishRequest(401, { error: 'Unauthorized' });
     return;  // Stop chain
   }
-  // Continue - não chama finishRequest
+  // Continue - does not call finishRequest
 };
 
 const logMiddleware: RouteHandler = (ctx) => {
   console.log(`${ctx.params} accessed at ${new Date()}`);
-  // Continue - não chama finishRequest
+  // Continue - does not call finishRequest
 };
 
 const getHandler: RouteHandler = (ctx) => {
@@ -433,27 +433,27 @@ const getHandler: RouteHandler = (ctx) => {
 app.get('/users/:id', authMiddleware, logMiddleware, getHandler);
 ```
 
-### Ordem de Execução
+### Execution Order
 
 ```
-1. authMiddleware(ctx) - verifica token
-   ├─ Sem token → finishRequest(401) → chain stops
-   └─ Com token → continua
+1. authMiddleware(ctx) - verify token
+   ├─ No token → finishRequest(401) → chain stops
+   └─ With token → continue
 
-2. logMiddleware(ctx) - loga acesso
-   └─ continua (não chama finishRequest)
+2. logMiddleware(ctx) - log access
+   └─ continue (does not call finishRequest)
 
-3. getHandler(ctx) - handler final
+3. getHandler(ctx) - final handler
    └─ finishRequest(200, { id }) → response sent
 ```
 
 ---
 
-## Fase 5: Finalização
+## Phase 5: Finalization
 
 ### finishRequest(code, message)
 
-**Responsabilidade**: Enviar resposta HTTP
+**Responsibility**: Send HTTP response
 
 ```typescript
 finishRequest(code: number | undefined, message: unknown): void {
@@ -469,13 +469,13 @@ finishRequest(code: number | undefined, message: unknown): void {
 }
 ```
 
-**Passos**:
+**Steps**:
 
-1. Define statusCode (default: 200)
-2. Escreve headers com `writeHead()`
-3. Escreve body com `write()`
-4. Finaliza com `end()`
-5. Fallback para `[ERR_HTTP_HEADERS_SENT]`
+1. Set statusCode (default: 200)
+2. Write headers with `writeHead()`
+3. Write body with `write()`
+4. Finalize with `end()`
+5. Fallback for `[ERR_HTTP_HEADERS_SENT]`
 
 ---
 
@@ -487,53 +487,53 @@ if (!this.appRes!.writableEnded) {
 }
 ```
 
-**Propósito**: Evitar tentar finalizar uma resposta já finalizada.
+**Purpose**: Avoid trying to finalize an already finalized response.
 
-**Quando acontece**:
-- Handler chama `finishRequest()`
-- Outro handler ou código tenta escrever novamente
+**When it happens**:
+- Handler calls `finishRequest()`
+- Another handler or code tries to write again
 
 ---
 
-## Resumo do Ciclo de Vida
+## Lifecycle Summary
 
-| Fase | Descrição | Tempo | Responsável |
+| Phase | Description | Time | Responsible |
 |------|-----------|-------|-------------|
-| 1 | Recebimento da requisição | Instantâneo | Node.js HTTP Server |
-| 2 | Setup inicial (captura dados) | O(1) | SweetPotato |
-| 3 | Roteamento (encontra rota) | O(n × m) | Routes |
-| 4 | Execução de handlers | O(k) | RequestCycle |
-| 5 | Finalização (resposta) | O(1) | SweetPotato |
+| 1 | Request reception | Instantaneous | Node.js HTTP Server |
+| 2 | Initial setup (capture data) | O(1) | SweetPotato |
+| 3 | Routing (find route) | O(n × m) | Routes |
+| 4 | Handler execution | O(k) | RequestCycle |
+| 5 | Finalization (response) | O(1) | SweetPotato |
 
-### Complexidade
+### Complexity
 
 - **Setup**: O(1)
-- **Route matching**: O(n) onde n = número de rotas
-- **Handler execution**: O(k) onde k = número de handlers
-- **Total por requisição**: O(n + k)
+- **Route matching**: O(n) where n = number of routes
+- **Handler execution**: O(k) where k = number of handlers
+- **Total per request**: O(n + k)
 
-### Consumo de Memória
+### Memory Usage
 
-| Item | Tamanho estimado |
+| Item | Estimated Size |
 |------|------------------|
 | `HandlerContext` | ~100-200 bytes |
 | `Route` | ~500-1000 bytes |
 | `RequestCycle` | ~100-200 bytes |
 | `HandlerContext` (frozen) | ~100-200 bytes |
 
-**Total por requisição**: ~1-2 KB (sem contar o body)
+**Total per request**: ~1-2 KB (not counting body)
 
 ---
 
-## Erros no Ciclo de Vida
+## Errors in Lifecycle
 
 ### RouteNotFoundException
 
-**Ocorrência**: Fase 3 (Routes.getRouteIndex)
+**Occurrence**: Phase 3 (Routes.getRouteIndex)
 
-**Causa**: Nenhuma rota corresponde ao path + method
+**Cause**: No route matches path + method
 
-**Tratamento**:
+**Handling**:
 ```typescript
 if (error instanceof RouteNotFoundException) {
   return this.finishRequest(HttpStatusCode.NOT_FOUND, {
@@ -542,17 +542,17 @@ if (error instanceof RouteNotFoundException) {
 }
 ```
 
-**Resposta**: 404 Not Found
+**Response**: 404 Not Found
 
 ---
 
-### Erro em Handler
+### Error in Handler
 
-**Ocorrência**: Fase 4 (RequestCycle.executeRequestCycle)
+**Occurrence**: Phase 4 (RequestCycle.executeRequestCycle)
 
-**Causa**: Exception lançada por qualquer handler
+**Cause**: Exception thrown by any handler
 
-**Tratamento**:
+**Handling**:
 ```typescript
 try {
   return await this.executeRequestCycle(...);
@@ -563,17 +563,17 @@ try {
 }
 ```
 
-**Resposta**: 500 Internal Server Error
+**Response**: 500 Internal Server Error
 
 ---
 
 ### [ERR_HTTP_HEADERS_SENT]
 
-**Ocorrência**: Fase 5 (finishRequest)
+**Occurrence**: Phase 5 (finishRequest)
 
-**Causa**: Tentativa de escrever headers após já ter sido feito
+**Cause**: Trying to write headers after already done
 
-**Tratamento**:
+**Handling**:
 ```typescript
 try {
   this.appRes!.writeHead(statusCode);
@@ -585,13 +585,13 @@ try {
 }
 ```
 
-**Resposta**: Apenas o body é escrito
+**Response**: Only body is written
 
 ---
 
-## Padrões de Uso Avançado
+## Advanced Usage Patterns
 
-### Middleware de Validação
+### Validation Middleware
 
 ```typescript
 const validateMiddleware: RouteHandler = (ctx) => {
@@ -603,7 +603,7 @@ const validateMiddleware: RouteHandler = (ctx) => {
 };
 ```
 
-### Middleware de Cache
+### Cache Middleware
 
 ```typescript
 const cacheMiddleware: RouteHandler = async (ctx) => {
@@ -614,11 +614,11 @@ const cacheMiddleware: RouteHandler = async (ctx) => {
     app.finishRequest(200, JSON.parse(cached));
     return;
   }
-  // Continue (sem cache)
+  // Continue (no cache)
 };
 ```
 
-### Middleware de Rate Limiting
+### Rate Limiting Middleware
 
 ```typescript
 const rateLimitMiddleware: RouteHandler = async (ctx) => {
@@ -635,11 +635,11 @@ const rateLimitMiddleware: RouteHandler = async (ctx) => {
 
 ---
 
-## Diagrama de Estado
+## State Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Requisição Recebida                       │
+│                    Request Received                         │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -660,7 +660,7 @@ const rateLimitMiddleware: RouteHandler = async (ctx) => {
               │                           │
               ▼                           ▼
     ┌──────────────────┐      ┌─────────────────────┐
-    │ Rota Encontrada  │      │ Rota Não Encontrada │
+    │ Route Found     │      │ Route Not Found     │
     └──────────────────┘      └─────────────────────┘
               │                           │
               ▼                           │
@@ -684,14 +684,14 @@ const rateLimitMiddleware: RouteHandler = async (ctx) => {
 
 ---
 
-## Conclusão
+## Conclusion
 
-O ciclo de vida do Potato Framework é **simples e direto**:
+The Potato Framework lifecycle is **simple and straightforward**:
 
-1. **Recebe** requisição HTTP
-2. **Captura** dados globais
-3. **Encontra** rota correspondente
-4. **Executa** handlers em sequência
-5. **Envia** resposta HTTP
+1. **Receives** HTTP request
+2. **Captures** global data
+3. **Finds** matching route
+4. **Executes** handlers in sequence
+5. **Sends** HTTP response
 
-Cada fase tem **uma única responsabilidade** e os dados são **encapsulados** no `HandlerContext` que é passado adiante.
+Each phase has **single responsibility** and data is **encapsulated** in the `HandlerContext` that is passed forward.
