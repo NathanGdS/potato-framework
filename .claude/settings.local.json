@@ -6,7 +6,8 @@
       "Bash(npm test:*)",
       "Bash(npm run:*)",
       "Bash(node --input-type=module)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Skill(ring-default:git-commit)"
     ]
   }
 }
