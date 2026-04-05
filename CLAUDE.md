@@ -110,3 +110,61 @@ potato-framework/
     ├── 01-simple-app/
     └── 02-routes-with-resources/
 ```
+
+## Learning Loop - Automated Knowledge Capture
+
+### Purpose
+
+This project implements a **learning loop** that captures lessons from implementation difficulties and repeated mistakes to prevent them in the future.
+
+### How It Works
+
+1. **Trigger**: When encountering implementation difficulties, retrial of previous mistakes, or design changes
+2. **Action**: Save lessons to `./.claude/lessons.md`
+3. **Content**: Specific, actionable insights with context and prevention strategies
+
+### Lessons File Format
+
+```markdown
+---
+date: YYYY-MM-DD
+difficulty: [low|medium|high]
+topic: [routing|middleware|async|etc]
+---
+
+## Lesson Title
+
+**Problem:** What went wrong or was difficult
+
+**Root Cause:** Why it happened
+
+**Solution:** What fixed it or how we resolved it
+
+**Prevention:** How to avoid this in the future
+```
+
+### Example Lesson
+
+```markdown
+---
+date: 2026-04-04
+difficulty: high
+topic: async-handling
+---
+
+## Async Handler Detection Edge Case
+
+**Problem:** Async handlers sometimes ran twice, causing double response errors.
+
+**Root Cause:** The `isPromise` check only looked at `instanceof Promise`, but some middlewares returned promises directly without wrapping.
+
+**Solution:** Added `constructor.name === "AsyncFunction"` check in addition to `instanceof Promise`.
+
+**Prevention:** Always test both sync and async handlers with the `async` keyword explicitly. Consider using `await new Promise(resolve => setTimeout(resolve, 0))` in tests to force async behavior.
+```
+
+### Maintenance
+
+- Review `./.claude/lessons.md` weekly during code review
+- Aggregate lessons into documentation updates monthly
+- Keep lessons specific to this project's patterns and mistakes
