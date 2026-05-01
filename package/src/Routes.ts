@@ -12,9 +12,13 @@ interface Route {
   method: string;
   originalSufix: string;
   sufix: RegExp;
+  requestCycle: RequestCycle;
+}
+
+interface RouteMatch {
+  index: number;
   params: Record<string, string> | null;
   queries: Record<string, string> | null;
-  requestCycle: RequestCycle;
 }
 
 export class Routes {
@@ -70,26 +74,29 @@ export class Routes {
       method,
       originalSufix: sufix,
       sufix: buildRoutePath(sufix),
-      params: null,
-      queries: null,
       requestCycle: new RequestCycle(handlers),
     };
     LoggerInstance().registerRoute(newRoute.method, newRoute.originalSufix, this.alias);
     this.routes.push(newRoute);
   }
 
-  private getRouteIndex(path: string, method: string): number {
-    return this.routes.findIndex((e) => {
+  private getRouteIndex(path: string, method: string): RouteMatch {
+    let matchedParams: Record<string, string> | null = null;
+    let matchedQueries: Record<string, string> | null = null;
+
+    const index = this.routes.findIndex((e) => {
       const regexVerifier = e.sufix.exec(path);
       if (!regexVerifier) return false;
       if (e.method !== method) return false;
       if (regexVerifier.find((t) => t === path)) {
-        e.params = getRouteParams(regexVerifier.groups as Record<string, string>);
-        e.queries = getQueries(regexVerifier.groups?.['query']);
+        matchedParams = getRouteParams(regexVerifier.groups as Record<string, string>);
+        matchedQueries = getQueries(regexVerifier.groups?.['query']);
         return true;
       }
       return false;
     });
+
+    return { index, params: matchedParams, queries: matchedQueries };
   }
 
   async executeRequestCycle(
@@ -98,14 +105,12 @@ export class Routes {
     body: unknown,
     headers: IncomingHttpHeaders
   ): Promise<void> {
-    const routeIndex = this.getRouteIndex(path, method);
-    if (routeIndex < 0) {
+    const { index, params, queries } = this.getRouteIndex(path, method);
+    if (index < 0) {
       throw new RouteNotFoundException();
     }
-    const route = this.routes[routeIndex];
+    const route = this.routes[index];
 
-    const params = route.params;
-    const queries = route.queries;
     const requestCycleObject: HandlerContext = Object.freeze({
       body,
       params,

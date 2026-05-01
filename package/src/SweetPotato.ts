@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import { Resource } from './Resource.js';
 import { HttpStatusCode } from './constants/index.js';
@@ -6,14 +7,15 @@ import { LoggerInstance as log } from './utils/logger.js';
 
 const DEFAULT_PORT = 8000;
 
+interface RequestStore {
+  req: IncomingMessage;
+  res: ServerResponse;
+}
+
+const requestStore = new AsyncLocalStorage<RequestStore>();
+
 export class SweetPotato extends Resource {
-  private appReq: IncomingMessage | null = null;
-  private appRes: ServerResponse | null = null;
-  private method: string = '';
-  private path: string = '';
-  private dataBody: unknown = null;
   private port: number = DEFAULT_PORT;
-  private headers: IncomingMessage['headers'] = {};
   private appName = 'App';
 
   constructor() {
@@ -24,14 +26,14 @@ export class SweetPotato extends Resource {
   listen(port?: number): void {
     this.port = port ?? DEFAULT_PORT;
     http
-      .createServer(async (req: IncomingMessage, res: ServerResponse) => {
-        this.defineGlobalAttributes(req, res);
-        await this.defineBodyAttributes();
-        await this.handleRoute();
-
-        if (!this.appRes!.writableEnded) {
-          this.appRes!.end();
-        }
+      .createServer((req: IncomingMessage, res: ServerResponse) => {
+        requestStore.run({ req, res }, async () => {
+          await this.handleRoute(req);
+          const store = requestStore.getStore()!;
+          if (!store.res.writableEnded) {
+            store.res.end();
+          }
+        });
       })
       .listen(this.port, () => {
         log().info(`${this.getRoutes().length} routes created`, this.appName);
@@ -39,34 +41,21 @@ export class SweetPotato extends Resource {
       });
   }
 
-  private defineGlobalAttributes(req: IncomingMessage, res: ServerResponse): void {
-    this.appReq = req;
-    this.appRes = res;
-    this.method = (req.method ?? 'GET').toUpperCase();
-    this.path = req.url ?? '/';
-    this.headers = req.headers;
-  }
-
-  private async defineBodyAttributes(): Promise<void> {
+  private async defineBodyAttributes(req: IncomingMessage): Promise<unknown> {
     const buffers: Buffer[] = [];
-
-    for await (const chunk of this.appReq!) {
+    for await (const chunk of req) {
       buffers.push(chunk as Buffer);
     }
-
-    if (buffers.length) {
-      this.dataBody = JSON.parse(Buffer.concat(buffers).toString());
-    }
+    return buffers.length ? JSON.parse(Buffer.concat(buffers).toString()) : null;
   }
 
-  private async handleRoute(): Promise<void> {
+  private async handleRoute(req: IncomingMessage): Promise<void> {
+    const body = await this.defineBodyAttributes(req);
+    const method = (req.method ?? 'GET').toUpperCase();
+    const path = req.url ?? '/';
+    const headers = req.headers;
     try {
-      return await this.executeRequestCycle(
-        this.path,
-        this.method,
-        this.dataBody,
-        this.headers
-      );
+      return await this.executeRequestCycle(path, method, body, headers);
     } catch (error) {
       if (error instanceof RouteNotFoundException) {
         return this.finishRequest(HttpStatusCode.NOT_FOUND, {
@@ -80,14 +69,11 @@ export class SweetPotato extends Resource {
   }
 
   finishRequest(code: number | undefined, message: unknown): void {
-    try {
-      const statusCode = code ?? HttpStatusCode.SUCCESS;
-      this.appRes!.writeHead(statusCode);
-      this.appRes!.write(JSON.stringify(message));
-      this.appRes!.end();
-    } catch {
-      this.appRes!.write(JSON.stringify(message));
-      this.appRes!.end();
-    }
+    const store = requestStore.getStore();
+    if (!store || store.res.writableEnded) return;
+    const statusCode = code ?? HttpStatusCode.SUCCESS;
+    store.res.writeHead(statusCode);
+    store.res.write(JSON.stringify(message));
+    store.res.end();
   }
 }

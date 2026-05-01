@@ -7,7 +7,8 @@
       "Bash(npm run:*)",
       "Bash(node --input-type=module)",
       "Bash(npx vitest:*)",
-      "Skill(ring-default:git-commit)"
+      "Skill(ring-default:git-commit)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Projetos\\\\node\\\\potato-framework\" -Recurse | Where-Object { $_.FullName -notmatch \"node_modules\" -and -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName)"
     ]
   }
 }

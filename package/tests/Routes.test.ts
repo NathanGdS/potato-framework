@@ -349,13 +349,31 @@ describe('Routes', () => {
         method: 'GET',
         originalSufix: '/api/test',
         sufix: buildRoutePath('/api/test'),
-        params: null,
-        queries: null,
         requestCycle: new RequestCycle([handler]),
       }]);
 
       await routes2.executeRequestCycle('/api/test', 'GET', null, {});
       expect(received).toHaveLength(1);
+    });
+  });
+
+  describe('route object immutability', () => {
+    it('should not store params on the route object after a match', async () => {
+      routes.get('/items/:id', () => {});
+
+      await routes.executeRequestCycle('/items/42', 'GET', null, {});
+
+      const route = routes.getRoutes()[0];
+      expect(route).not.toHaveProperty('params');
+    });
+
+    it('should not store queries on the route object after a match', async () => {
+      routes.get('/search', () => {});
+
+      await routes.executeRequestCycle('/search?q=potato', 'GET', null, {});
+
+      const route = routes.getRoutes()[0];
+      expect(route).not.toHaveProperty('queries');
     });
   });
 });
