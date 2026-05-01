@@ -4,21 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Potato Framework** is a lightweight Node.js HTTP server framework (the main module is called `SweetPotato`). It uses native Node.js `http` module with no external dependencies, written in pure ES Modules (`.mjs`).
+**Potato Framework** is a lightweight Node.js HTTP server framework (the main module is called `SweetPotato`). Uses native Node.js `http` module with no runtime dependencies, written in TypeScript compiled to ES Modules.
 
 - Node.js 18.12.0+ required
-- No build step — plain JavaScript ES Modules
-- No TypeScript, no bundler, no test runner configured
+- TypeScript source in `package/src/`, compiled to `package/dist/`
+- Build step required: `npm run build` (tsc)
+- Vitest test suite with 85% coverage thresholds
 
 ## Running Examples
 
+Examples run via `tsx` (no build needed):
+
 ```bash
-cd package
-npm run ex-01   # Run simple app example
-npm run ex-02   # Run routes-with-resources example
+cd examples
+npm run example-01   # 01-simple-app
+npm run example-02   # 02-routes-with-resources
 ```
 
-No lint or test scripts are configured in this project.
+## Running Tests
+
+```bash
+cd package
+npm test                # run all tests
+npm run test:coverage   # run with coverage report
+npm run test:watch      # watch mode
+npm run build           # compile TypeScript → dist/
+```
 
 ## Architecture
 
@@ -36,79 +47,98 @@ HTTP Request
 
 | File | Role |
 |------|------|
-| `package/SweetPotato.mjs` | Main server class; extends `Resource`; owns the HTTP server and `finishRequest()` |
-| `package/Routes.mjs` | Routing engine; stores routes per HTTP method; matches via regex |
-| `package/Resource.mjs` | Fluent DSL for defining routes; extends `Routes` |
-| `package/RequestCycle.mjs` | Executes the middleware/handler chain (supports sync and async) |
-| `package/SweetPotatoApp.mjs` | Singleton wrapper around `SweetPotato` |
+| `package/src/SweetPotato.ts` | Main server class; extends `Resource`; owns HTTP server and `finishRequest()` |
+| `package/src/Routes.ts` | Routing engine; stores routes per HTTP method; matches via regex |
+| `package/src/Resource.ts` | Fluent DSL for defining routes; extends `Routes` |
+| `package/src/RequestCycle.ts` | Executes the middleware/handler chain (supports sync and async) |
+| `package/src/SweetPotatoApp.ts` | Singleton wrapper around `SweetPotato` |
 
 ### Handler Contract
 
-Every handler/middleware receives a single frozen object:
+Every handler/middleware receives a `HandlerContext` (frozen object):
 
-```javascript
-{ body, params, headers, queries }
+```typescript
+interface HandlerContext {
+  body: any;
+  params: Record<string, string> | null;
+  headers: IncomingHttpHeaders;
+  queries: Record<string, string> | null;
+}
+
+type RouteHandler = (ctx: HandlerContext) => void | Promise<void>;
 ```
 
-- `body` — parsed JSON or `null`
-- `params` — named route params (e.g., `:id`) or `null`
-- `headers` — request headers object
-- `queries` — query string params or `null`
-
-Handlers call `app.finishRequest(statusCode, data)` to send a response. There is no `next()` — all registered handlers for a route run sequentially via `RequestCycle`.
+Handlers call `app.finishRequest(statusCode, data)` to send a response. No `next()` — all registered handlers for a route run sequentially via `RequestCycle`.
 
 ### Route Definition Patterns
 
 **Direct methods:**
-```javascript
+```typescript
 app.get("path", ...middlewares, handlerFn);
 app.post("path", handlerFn);
 // also: .patch(), .put(), .delete()
 ```
 
 **Resource DSL:**
-```javascript
+```typescript
 app.resource("message")
-  .defineHandler({ method: HttpMethod.GET, sufix: ":id" }, handler)
-  .defineHandler({ method: HttpMethod.POST }, handler);
+  .defineHandler({ method: "GET", sufix: ":id" }, handler)
+  .defineHandler({ method: "POST" }, handler);
+```
+
+**Default middlewares on a resource:**
+```typescript
+app.resource("message")
+  .defaultMiddlewares(authMiddleware)
+  .defineHandler({ method: "GET" }, handler);
 ```
 
 **Global prefix:**
-```javascript
+```typescript
 app.registerGlobalPrefix("api/v1");
 ```
 
 ### Route Path Building
 
-`utils/buildRoutePath.mjs` converts paths like `"users/:id"` into a `RegExp` that also captures named groups. Route params are extracted later by `utils/get-route-params.mjs`.
+`utils/buildRoutePath.ts` converts paths like `"users/:id"` into a `RegExp` capturing named groups. Route params extracted by `utils/get-route-params.ts`; query params by `utils/get-query-params.ts`.
 
 ### Async Detection
 
-`utils/isPromise.mjs` detects async functions by checking `constructor.name === "AsyncFunction"` or `instanceof Promise`, so `RequestCycle` can `await` them properly.
+`utils/isPromise.ts` detects async functions by checking `constructor.name === "AsyncFunction"` or `instanceof Promise`, so `RequestCycle` can `await` them properly.
 
 ### Error Handling
 
 - Unmatched routes → `RouteNotFoundException` → 404 response
 - Handler throws → caught in `RequestCycle` → 500 response
-- `[ERR_HTTP_HEADERS_SENT]` guard is in place to prevent double-response errors in async contexts
+- `[ERR_HTTP_HEADERS_SENT]` guard prevents double-response errors in async contexts
 
 ## Repository Layout
 
 ```
 potato-framework/
 ├── package/                        # Framework source
-│   ├── index.mjs                   # Public API (exports SweetPotatoApp)
-│   ├── SweetPotato.mjs
-│   ├── Routes.mjs
-│   ├── Resource.mjs
-│   ├── RequestCycle.mjs
-│   ├── SweetPotatoApp.mjs
-│   ├── constants/                  # HttpMethod, HttpStatusCode enums
-│   ├── errors/                     # RouteNotFoundException
-│   └── utils/                      # buildRoutePath, logger, param parsers
-└── examples/
-    ├── 01-simple-app/
-    └── 02-routes-with-resources/
+│   ├── src/                        # TypeScript source
+│   │   ├── index.ts                # Public API (exports SweetPotatoApp)
+│   │   ├── SweetPotato.ts
+│   │   ├── Routes.ts
+│   │   ├── Resource.ts
+│   │   ├── RequestCycle.ts
+│   │   ├── SweetPotatoApp.ts
+│   │   ├── types/                  # HandlerContext, RouteHandler
+│   │   ├── constants/              # HttpMethod, HttpStatusCode, routes.constants
+│   │   ├── errors/                 # RouteNotFoundException
+│   │   └── utils/                  # buildRoutePath, logger, colours, param parsers
+│   ├── dist/                       # Compiled output (JS + .d.ts)
+│   ├── tests/                      # Vitest unit + integration tests
+│   │   ├── integration/
+│   │   └── utils/
+│   ├── tsconfig.json
+│   └── vitest.config.ts
+├── examples/                       # TypeScript examples (tsx runtime)
+│   ├── package.json                # own deps: potato-framework, tsx
+│   ├── 01-simple-app/
+│   └── 02-routes-with-resources/
+└── docs/                           # Detailed documentation per module
 ```
 
 ## Learning Loop - Automated Knowledge Capture
@@ -141,26 +171,6 @@ topic: [routing|middleware|async|etc]
 **Solution:** What fixed it or how we resolved it
 
 **Prevention:** How to avoid this in the future
-```
-
-### Example Lesson
-
-```markdown
----
-date: 2026-04-04
-difficulty: high
-topic: async-handling
----
-
-## Async Handler Detection Edge Case
-
-**Problem:** Async handlers sometimes ran twice, causing double response errors.
-
-**Root Cause:** The `isPromise` check only looked at `instanceof Promise`, but some middlewares returned promises directly without wrapping.
-
-**Solution:** Added `constructor.name === "AsyncFunction"` check in addition to `instanceof Promise`.
-
-**Prevention:** Always test both sync and async handlers with the `async` keyword explicitly. Consider using `await new Promise(resolve => setTimeout(resolve, 0))` in tests to force async behavior.
 ```
 
 ### Maintenance
