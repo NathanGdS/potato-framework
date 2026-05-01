@@ -2,6 +2,26 @@ import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SweetPotato } from '../../src/SweetPotato.ts';
 
+function rawGet(port: number, path: string, timeoutMs = 500): Promise<{ status: number; body: unknown }> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms: GET ${path}`)), timeoutMs);
+    const req = http.request(
+      { hostname: 'localhost', port, path, method: 'GET', agent: new http.Agent() },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          clearTimeout(timer);
+          try { resolve({ status: res.statusCode!, body: JSON.parse(data) }); }
+          catch (e) { reject(e); }
+        });
+      },
+    );
+    req.on('error', (e) => { clearTimeout(timer); reject(e); });
+    req.end();
+  });
+}
+
 interface TestServer {
   app: SweetPotato;
   start: () => Promise<void>;
@@ -180,6 +200,30 @@ describe('SweetPotato — integration', () => {
     });
   });
 
+  describe('concurrent request isolation', () => {
+    it('each concurrent request should receive its own correct response', async () => {
+      const port = new URL(server.url('/')).port;
+
+      server.app.get('/slow', async (_ctx) => {
+        await new Promise((r) => setTimeout(r, 50));
+        server.app.finishRequest(200, { id: 'slow' });
+      });
+      server.app.get('/fast', (_ctx) => {
+        server.app.finishRequest(200, { id: 'fast' });
+      });
+
+      const [slowRes, fastRes] = await Promise.all([
+        rawGet(Number(port), '/t/slow', 500),
+        rawGet(Number(port), '/t/fast', 500),
+      ]);
+
+      expect(slowRes.status).toBe(200);
+      expect(fastRes.status).toBe(200);
+      expect(slowRes.body).toEqual({ id: 'slow' });
+      expect(fastRes.body).toEqual({ id: 'fast' });
+    });
+  });
+
   describe('multiple simultaneous requests', () => {
     it('should not crash the server with [ERR_HTTP_HEADERS_SENT] when requests overlap', async () => {
       server.app.get('/stable', (_ctx) => {
@@ -199,7 +243,7 @@ describe('SweetPotato — integration', () => {
       }
     });
 
-    it('should keep the server alive after async handler overlap (guard prevents crash)', async () => {
+    it('all async requests should complete successfully without state leaking between them', async () => {
       server.app.get('/async-overlap', async (_ctx) => {
         await new Promise((r) => setTimeout(r, 5));
         server.app.finishRequest(200, { ok: true });
@@ -223,7 +267,7 @@ describe('SweetPotato — integration', () => {
         if (result.status === 'fulfilled') completedCount++;
       }
 
-      expect(completedCount).toBeGreaterThanOrEqual(1);
+      expect(completedCount).toBe(3);
 
       server.app.get('/alive-check', (_ctx) => {
         server.app.finishRequest(200, { alive: true });
